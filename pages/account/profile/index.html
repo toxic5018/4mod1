@@ -10,6 +10,10 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2851265996786440"
+     crossorigin="anonymous"></script>
+
+
      <style>
         body {
              font-family: sans-serif;
@@ -439,7 +443,7 @@
              flex-grow: 1;
          }
          .error-dialog-text h3 {}
-         .error-dialog-text p {}
+         .dialog-text p {}
          .dialog-buttons.right-align.error-dialog-buttons { justify-content: flex-end; }
          .dialog-button.error-dialog-button {
              padding: 8px 15px; border-radius: 4px; font-size: 0.9em;
@@ -587,10 +591,31 @@
              cursor: pointer;
              font-size: 1em;
              transition: background-color 0.3s ease;
+              margin-bottom: 10px; /* Space between buttons */
          }
          .pfp-upload-button:hover {
              background-color: #2980b9;
          }
+
+         .pfp-reset-button {
+             padding: 10px 20px;
+             background-color: #95a5a6; /* Gray color */
+             color: #fff;
+             border: none;
+             border-radius: 4px;
+             cursor: pointer;
+             font-size: 1em;
+             transition: background-color 0.3s ease;
+             display: flex;
+             align-items: center;
+         }
+         .pfp-reset-button:hover {
+             background-color: #7f8c8d;
+         }
+          .pfp-reset-button .material-icons {
+              margin-right: 5px;
+          }
+
 
           /* Styling for the image area and the movable crop circle */
          .pfp-image-container {
@@ -1029,7 +1054,8 @@
 
                  <div id="pfp-upload-view" class="pfp-edit-view show">
                      <input type="file" id="pfp-upload-input" accept="image/*">
-                     <button class="pfp-upload-button" id="select-image-button">Select Image File</button>
+                      <button class="pfp-upload-button" id="select-image-button">Select Image File</button>
+                      <button class="pfp-reset-button" id="pfp-reset-button"><i class="material-icons">refresh</i> Reset</button>
                  </div>
 
                  <div id="pfp-crop-view" class="pfp-edit-view">
@@ -1180,6 +1206,7 @@
             // PFP Upload View Elements
             const pfpUploadInput = document.getElementById('pfp-upload-input');
             const selectImageButton = document.getElementById('select-image-button');
+             const pfpResetButton = document.getElementById('pfp-reset-button'); // New Reset button
 
              // PFP Crop View Elements
              const pfpImageContainer = document.querySelector('#pfp-crop-view .pfp-image-container');
@@ -1209,6 +1236,11 @@
              let selectedFile = null; // To store the selected image file before upload
              let finalImageDataUrl = null; // To store the Data URL of the final image for saving
              const bioCharLimit = 5000; // Max characters for bio
+
+
+            // Variables for dragging the crop circle
+            let isDragging = false;
+            let offsetX, offsetY;
 
 
             // Function to generate a random 5-character code (letters and numbers)
@@ -1408,6 +1440,7 @@
 
                  } else {
                      // User is signed out
+                     console.log("No user signed in, updating header UI.");
                      if (signInLink) signInLink.style.display = 'flex';
                      if (userDisplay) userDisplay.style.display = 'none';
                      if (adminButton) adminButton.style.display = 'none';
@@ -1431,7 +1464,7 @@
                               const snapshot = await get(userProfileRef);
                               if (snapshot.exists()) {
                                   const userData = snapshot.val();
-                                   console.log("User profile data fetched for header:", userData);
+                                   console.log("User profile data fetched for header and profile:", userData);
                                   username = userData.username || user.email; // Use username from RTDB, fallback to email
                                    // If RTDB has a profilePictureUrl, use it if Auth photoURL is missing
                                    if (!photoURLToDisplay && userData.profilePictureUrl) {
@@ -1650,6 +1683,18 @@
                  });
             }
 
+             // Handle Reset button in PFP Upload View
+             if (pfpResetButton && pfpUploadInput && pfpImagePreview) {
+                 pfpResetButton.addEventListener('click', () => {
+                     console.log("PFP Reset button clicked. Clearing file input and preview.");
+                     pfpUploadInput.value = null; // Clear the file input
+                     selectedFile = null; // Clear the selected file variable
+                     pfpImagePreview.src = "#"; // Reset the image preview source
+                     // Optionally hide the image preview area if it was shown
+                 });
+             }
+
+
              // Handle file selection (Step 1 to Step 2)
             if (pfpUploadInput && pfpImagePreview) {
                  pfpUploadInput.addEventListener('change', (event) => {
@@ -1669,6 +1714,10 @@
             }
 
             // --- Crop Circle Dragging Logic (Simulation) ---
+            // Variables for dragging the crop circle (declared globally above)
+            // let isDragging = false;
+            // let offsetX, offsetY;
+
             if (pfpCropCircle && pfpImageContainer) {
                  pfpCropCircle.addEventListener('mousedown', (e) => {
                      isDragging = true;

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4Mod1 - Sign In</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+     <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            overflow: hidden; /* Hide potential scrollbar during animation */
+        }
+
+        /* Define the zoom-in animation for the form container */
+        @keyframes zoomIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .signin-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            animation: zoomIn 0.6s ease-out forwards;
+             opacity: 0;
+             transition: opacity 0.3s ease-out;
+        }
+
+         .signin-container.hidden {
+             opacity: 0;
+             pointer-events: none;
+             /* You might want to use 'display: none;' after a short delay to remove from layout */
+         }
+
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #999;
+            text-decoration: none;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover {
+            color: #555;
+        }
+
+
+        .signin-container h2 {
+            margin-top: 0;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .form-logo {
+            width: 80px;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px auto;
+            user-drag: none;
+            -webkit-user-drag: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+             position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            user-select: auto !important;
+            -webkit-user-select: auto !important;
+            -moz-user-select: auto !important;
+            -ms-user-select: auto !important;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-container input {
+            padding-right: 40px;
+        }
+
+        .password-container .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #555;
+            user-select: none;
+            font-size: 20px;
+            z-index: 5;
+        }
+
+        /* Hide the recaptcha container in the main form */
+        .recaptcha-container {
+            display: none !important;
+        }
+
+        .login-button { /* This button initiates the verification flow */
+            width: 100%;
+            padding: 12px;
+            background-color: #cccccc;
+            color: #666;
+            border: none;
+            border-radius: 20px;
+            cursor: not-allowed;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, color 0.3s ease, cursor 0.3s ease;
+        }
+
+        .login-button.active {
+            background: linear-gradient(to right, #5cb85c, #5bc0de);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Hide the old text error message div */
+        .error-message {
+            display: none;
+        }
+
+
+        .signup-link {
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        .signup-link a {
+             color: #4a90e2;
+             text-decoration: none;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+         /* --- General Dialog Styles (Shared) --- */
+         /* Styles for the modal overlay (dim background) */
+        .dialog-overlay {
+             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center;
+            align-items: center; z-index: 2000; visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+         .dialog-overlay.show { visibility: visible; opacity: 1; }
+
+        /* Styles for the dialog box */
+        .dialog {
+            background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 400px; width: 90%; overflow: hidden; transform: scale(0.9);
+            transition: transform 0.3s ease; text-align: center;
+        }
+        .dialog-overlay.show .dialog { transform: scale(1); }
+
+         /* Styles for the dialog header bar */
+        .dialog-header { height: 8px; }
+         .dialog-header.gray { background-color: #bdc3c7; } /* Gray header */
+         .dialog-header.green { background-color: #5cb85c; } /* Green header */
+         .dialog-header.red { background-color: #e74c3c; } /* Red header */
+
+
+         /* Styles for the main content area within a dialog */
+        .dialog-content {
+             display: flex; flex-direction: column; align-items: center; padding: 20px;
+        }
+        .dialog-content.horizontal {
+             flex-direction: row;
+            align-items: flex-start;
+         }
+
+
+         /* Styles for icons within dialogs */
+        .dialog-icon { font-size: 60px; margin-bottom: 10px; }
+         .dialog-content.horizontal .dialog-icon { font-size: 40px; margin-right: 15px; margin-bottom: 0; flex-shrink: 0; }
+         .dialog-icon.gray { color: #95a5a6; } /* Gray icon */
+         .dialog-icon.green { color: #5cb85c; } /* Green icon */
+         .dialog-icon.red { color: #e74c3c; } /* Red icon */
+
+
+         /* Styles for text content within dialogs */
+        .dialog-text {
+             flex-grow: 1;
+            text-align: center;
+         }
+         .dialog-content.horizontal .dialog-text {
+             text-align: left;
+         }
+
+        .dialog-text h3 { margin-top: 0; margin-bottom: 5px; color: #333; }
+        .dialog-text p { margin: 0; color: #555; font-size: 0.9em; }
+
+
+         /* Styles for the reCAPTCHA container inside a dialog */
+         .dialog-recaptcha-container {
+             margin: 20px 0;
+         }
+
+         /* Styles for the generated code display */
+        .generated-code-display {
+             font-size: 2.5em; font-weight: bold; margin: 20px 0; letter-spacing: 2px;
+            color: #333; user-select: text !important; -webkit-user-select: text !important;
+            -moz-user-select: text !important; -ms-user-select: text !important;
+        }
+
+        /* Styles for verification code input */
+        .verification-code-input {
+             width: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;
+            text-align: center; font-size: 1.2em; margin-bottom: 20px; user-select: auto !important;
+            -webkit-user-select: auto !important; -moz-user-select: auto !important; -ms-user-select: auto !important;
+        }
+
+        /* Styles for the buttons container within a dialog */
+        .dialog-buttons { display: flex; justify-content: center; padding: 15px 20px; border-top: 1px solid #eee; }
+
+         /* General style for dialog buttons */
+        .dialog-button { padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 1em; margin: 0 10px; transition: opacity 0.3s ease; }
+        .dialog-buttons.right-align { justify-content: flex-end; } /* Align buttons to the right */
+         .dialog-buttons.right-align .dialog-button {
+             padding: 8px 15px; border-radius: 4px; font-size: 0.9em;
+         }
+
+
+         /* Specific button styles */
+        .dialog-button.cancel-button { background-color: transparent; color: #555; border: 1px solid #ccc; }
+        .dialog-button.cancel-button:hover { background-color: #f4f4f4; }
+
+        .dialog-button.verify-button { background-color: #3498db; color: #fff; border: 1px solid #3498db; } /* Blue */
+         .dialog-button.verify-button:hover { background-color: #2980b9; border-color: #2980b9; }
+
+         .dialog-button.next-button { background-color: #5cb85c; color: #fff; border: 1px solid #5cb85c; } /* Green */
+         .dialog-button.next-button:hover { background-color: #4cae4c; border-color: #4cae4c; }
+
+         .dialog-button.continue-button { background-color: #5cb85c; color: #fff; border: 1px solid #5cb85c; } /* Green (same as next for now) */
+         .dialog-button.continue-button:hover { background-color: #4cae4c; border-color: #4cae4c; }
+
+         .dialog-button.signin-alt-button { background-color: transparent; color: #4a90e2; border: 1px solid #4a90e2; } /* Blue Outline */
+         .dialog-button.signin-alt-button:hover { background-color: #f4f4f4; }
+
+
+         /* Error message specifically for verification steps */
+         .verification-error-message {
+            color: red; font-size: 0.9em; margin-top: -10px; margin-bottom: 15px;
+            text-align: center; display: none;
+         }
+
+
+        /* --- Red Error Dialog Styles (Uses General Dialog Styles) --- */
+         /* The .error-dialog styles below now override/use the general .dialog styles */
+         .error-dialog-overlay { } /* Already uses .dialog-overlay */
+         .error-dialog { } /* Already uses .dialog */
+         .error-dialog-header { background-color: #e74c3c; } /* Red Header */
+         .error-dialog-content { } /* Uses .dialog-content.horizontal */
+         .error-icon { color: #e74c3c; } /* Red Icon */
+         .error-dialog-text { } /* Uses .dialog-text */
+         .error-dialog-text h3 {}
+         .error-dialog-text p {}
+         .error-dialog-buttons { justify-content: flex-end; } /* Align right */
+         .error-dialog-button { /* Specific Okay button style */
+             padding: 8px 15px; border-radius: 4px; font-size: 0.9em;
+             background-color: #3498db; color: #fff; border: 1px solid #3498db;
+         }
+          .error-dialog-button:hover { background-color: #2980b9; border-color: #2980b9; }
+
+
+         /* --- Green Success Dialog Styles (Uses General Dialog Styles) --- */
+         /* The .success-dialog styles below now override/use the general .dialog styles */
+        .success-dialog-overlay {} /* Already uses .dialog-overlay */
+        .success-dialog {} /* Already uses .dialog */
+        .success-dialog-header { background-color: #5cb85c; } /* Green Header */
+        .success-dialog-content {} /* Uses .dialog-content */
+        .success-dialog-icon { color: #5cb85c; } /* Green Icon */
+        .success-dialog-text h3 {}
+        .success-dialog-text p {}
+        .success-dialog-buttons { justify-content: center; } /* Center buttons */
+        /* Button styles already defined using .continue-button, .signin-alt-button */
+
+
+    </style>
+</head>
+<body>
+    <div class="signin-container">
+        <a href="../../index.html" class="close-button"><i class="material-icons">close</i></a>
+
+        <h2>Welcome</h2>
+        <img src="../../assets/logo.png" alt="4Mod1 Logo" class="form-logo" draggable="false">
+        <form id="signinForm">
+            <div class="form-group">
+                <label for="email">Email/Username</label>
+                <input type="text" id="email-username" name="email-username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                 <div class="password-container">
+                    <input type="password" id="password" name="password" required>
+                    <i class="material-icons toggle-password" onclick="togglePasswordVisibility('password', this)">visibility</i>
+                 </div>
+            </div>
+
+            <button type="submit" class="login-button" disabled>LOGIN</button>
+        </form>
+        <p class="signup-link">Don't have an account? <a href="../signup/index.html">Sign Up</a></p>
+    </div>
+
+    <div id="signin-success-overlay" class="dialog-overlay success-dialog-overlay">
+        <div id="signin-success-dialog" class="dialog success-dialog">
+            <div class="dialog-header green success-dialog-header"></div>
+            <div class="dialog-content success-dialog-content">
+                <i class="material-icons dialog-icon green success-dialog-icon">check_circle</i>
+                <div class="dialog-text success-dialog-text">
+                    <h3>Sign In Successful!</h3>
+                    <p>You have successfully logged in.</p>
+                </div>
+            </div>
+            <div class="dialog-buttons success-dialog-buttons">
+                <button id="signin-continue-button" class="dialog-button continue-button">Continue</button>
+            </div>
+        </div>
+    </div>
+
+     <div id="error-dialog-overlay" class="dialog-overlay error-dialog-overlay">
+        <div id="error-dialog" class="dialog error-dialog">
+            <div class="dialog-header red error-dialog-header"></div>
+            <div class="dialog-content horizontal error-dialog-content">
+                <i class="material-icons dialog-icon red error-icon">warning</i>
+                <div class="dialog-text error-dialog-text">
+                    <h3>Error</h3>
+                    <p id="error-dialog-message"></p>
+                </div>
+            </div>
+            <div class="dialog-buttons right-align error-dialog-buttons">
+                <button id="error-dialog-ok-button" class="dialog-button error-dialog-button">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="verification-step1-overlay" class="dialog-overlay verification-dialog-overlay">
+        <div id="verification-step1-dialog" class="dialog verification-dialog">
+            <div class="dialog-header gray verification-dialog-header"></div>
+            <div class="dialog-content verification-dialog-content">
+                 <i class="material-icons dialog-icon gray verification-icon">android</i> <div class="dialog-text verification-dialog-text">
+                    <h3>Robot Check</h3>
+                    <p>(Step 1 of 2)</p>
+                </div>
+                 <div class="dialog-recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="6LdUciYrAAAAABMs9-fVhMTxZ0XJEIdWARfTqPOO" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+                </div>
+                 <div id="recaptcha-error-message" class="verification-error-message"></div> <div class="dialog-buttons verification-dialog-buttons">
+                    <button id="cancel-verification-step1" class="dialog-button cancel-button">Cancel</button>
+                    <button id="next-step1-button" class="dialog-button next-button" disabled>Next Step</button> </div>
+            </div>
+        </div>
+    </div>
+
+     <div id="verification-step2-overlay" class="dialog-overlay verification-dialog-overlay">
+        <div id="verification-step2-dialog" class="dialog verification-dialog">
+            <div class="dialog-header gray verification-dialog-header"></div>
+             <div class="dialog-content verification-dialog-content">
+                 <i class="material-icons dialog-icon gray verification-icon">vpn_key</i> <div class="dialog-text verification-dialog-text">
+                    <h3>Verification Code</h3>
+                    <p>(Step 2 of 2)</p>
+                     <p>Enter the code displayed below:</p>
+                </div>
+                 <div class="generated-code-display" id="generated-code-display"></div>
+                 <input type="text" id="verification-code-input-signin" class="verification-code-input" maxlength="5" placeholder="Enter Code">
+                 <div id="verification-error-message-signin" class="verification-error-message"></div>
+                 <div class="dialog-buttons verification-dialog-buttons">
+                    <button id="cancel-verification-step2-signin" class="dialog-button cancel-button">Cancel</button> <button id="verify-and-login-button" class="dialog-button verify-button">Verify & Login</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Import Firebase functions using modular syntax
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyDjI46S2PGPbUsdvQfWXA0EQ6Pd9lpBRCE",
+          authDomain: "toxicstudios-6de44.firebaseapp.com",
+          databaseURL: "https://toxicstudios-6de44-default-rtdb.firebaseio.com",
+          projectId: "toxicstudios-6de44",
+          storageBucket: "toxicstudios-6de44.firebasestorage.app",
+          messagingSenderId: "22447277764",
+          appId: "1:22447277764:web:7635c6bdb024e0d8b6ab91",
+          measurementId: "G-9CBQQD863T"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const signinContainer = document.querySelector('.signin-container');
+            const emailUsernameInput = document.getElementById('email-username');
+            const passwordInput = document.getElementById('password');
+            const loginButton = document.querySelector('.login-button');
+
+             // Success Dialog Elements
+            const successDialogOverlay = document.getElementById('signin-success-overlay');
+            const signinContinueButton = document.getElementById('signin-continue-button');
+
+             // Error Dialog Elements
+            const errorDialogOverlay = document.getElementById('error-dialog-overlay');
+            const errorDialogMessage = document.getElementById('error-dialog-message');
+            const errorDialogOkButton = document.getElementById('error-dialog-ok-button');
+
+             // Verification Step 1 Dialog Elements (Robot Check)
+            const verificationStep1Overlay = document.getElementById('verification-step1-overlay');
+            const verificationStep1Dialog = document.getElementById('verification-step1-dialog');
+            const recaptchaErrorMessageDiv = document.getElementById('recaptcha-error-message'); // New error message div for recaptcha
+            const cancelVerificationStep1Button = document.getElementById('cancel-verification-step1'); // Reused ID
+            const nextStep1Button = document.getElementById('next-step1-button'); // Reused ID
+
+             // Verification Step 2 Dialog Elements (Code Generator)
+            const verificationStep2Overlay = document.getElementById('verification-step2-overlay');
+            const verificationStep2Dialog = document.getElementById('verification-step2-dialog');
+            const generatedCodeDisplay = document.getElementById('generated-code-display');
+            const verificationCodeInput = document.getElementById('verification-code-input-signin'); // Updated ID
+            const verificationErrorMessageDiv = document.getElementById('verification-error-message-signin'); // Updated ID
+            const cancelVerificationStep2Button = document.getElementById('cancel-verification-step2-signin'); // Updated ID
+            const verifyAndLoginButton = document.getElementById('verify-and-login-button');
+
+
+             let generatedVerificationCode = null; // Variable to store the generated code
+
+
+            // Function to generate a random 5-character code (letters and numbers)
+            function generateVerificationCode(length = 5) {
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                const charactersLength = characters.length;
+                for (let i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+                return result;
+            }
+
+            // Function to hide all dialogs
+            function hideAllDialogs() {
+                hideSuccessDialog();
+                hideErrorDialog();
+                hideVerificationStep1();
+                hideVerificationStep2();
+            }
+
+            // Function to show the success dialog
+            function showSuccessDialog() {
+                hideAllDialogs();
+                if (successDialogOverlay) {
+                    successDialogOverlay.classList.add('show');
+                }
+            }
+
+             // Function to hide the success dialog
+            function hideSuccessDialog() {
+                 if (successDialogOverlay) {
+                    successDialogOverlay.classList.remove('show');
+                 }
+            }
+
+             // Function to show Verification Step 1 Dialog (Robot Check)
+            function showVerificationStep1() {
+                 hideAllDialogs();
+                 signinContainer.classList.add('hidden');
+                 recaptchaErrorMessageDiv.style.display = 'none'; // Hide recaptcha error
+                 nextStep1Button.disabled = true; // Disable Next button initially
+                 if (verificationStep1Overlay) {
+                    verificationStep1Overlay.classList.add('show');
+                 }
+            }
+
+             // Function to hide Verification Step 1 Dialog
+            function hideVerificationStep1() {
+                 if (verificationStep1Overlay) {
+                    verificationStep1Overlay.classList.remove('show');
+                 }
+            }
+
+             // Function to show Verification Step 2 Dialog (Code Generator)
+            function showVerificationStep2(code) {
+                 hideVerificationStep1();
+                 hideErrorDialog(); // Hide error dialog
+                 if (verificationStep2Overlay) {
+                     generatedCodeDisplay.textContent = code;
+                     verificationCodeInput.value = '';
+                     verificationErrorMessageDiv.style.display = 'none';
+                    verificationStep2Overlay.classList.add('show');
+                 }
+            }
+
+             // Function to hide Verification Step 2 Dialog
+            function hideVerificationStep2() {
+                 if (verificationStep2Overlay) {
+                    verificationStep2Overlay.classList.remove('show');
+                 }
+            }
+
+             // Function to show the error dialog
+             function showErrorDialog(message) {
+                 hideAllDialogs();
+                 // Show main form again? Depends on cancellation point.
+                 // For simplicity, let's always show the main form on error from verification steps
+                 signinContainer.classList.remove('hidden');
+
+                if (errorDialogOverlay && errorDialogMessage) {
+                     errorDialogMessage.textContent = message;
+                    errorDialogOverlay.classList.add('show');
+                }
+             }
+
+             // Function to hide the error dialog
+             function hideErrorDialog() {
+                 if (errorDialogOverlay) {
+                    errorDialogOverlay.classList.remove('show');
+                 }
+             }
+
+
+            // Function called by reCAPTCHA when verification succeeds
+            window.onRecaptchaSuccess = function() {
+                 console.log('reCAPTCHA verified!');
+                 recaptchaErrorMessageDiv.style.display = 'none'; // Hide recaptcha error message
+                 nextStep1Button.disabled = false; // Enable the Next Step button
+            };
+
+             // Function called by reCAPTCHA when verification expires
+            window.onRecaptchaExpired = function() {
+                console.log('reCAPTCHA expired, resetting...');
+                recaptchaErrorMessageDiv.textContent = 'reCAPTCHA expired. Please verify again.';
+                recaptchaErrorMessageDiv.style.display = 'block';
+                nextStep1Button.disabled = true; // Disable the Next Step button
+                grecaptcha.reset();
+            };
+
+
+            function checkFormValidity() {
+                const allFieldsFilled = emailUsernameInput.value.length > 0 && passwordInput.value.length > 0;
+                 // reCAPTCHA verification is now handled within the dialog step, not here
+
+
+                if (allFieldsFilled) { // Button active based on form fields only
+                    loginButton.classList.add('active');
+                    loginButton.disabled = false;
+                } else {
+                    loginButton.classList.remove('active');
+                    loginButton.disabled = true;
+                }
+            }
+
+            // Input listeners for form fields to update button state
+            emailUsernameInput.addEventListener('input', checkFormValidity);
+            passwordInput.addEventListener('input', checkFormValidity);
+
+            setTimeout(checkFormValidity, 500); // Initial check
+
+
+            document.getElementById('signinForm').addEventListener('submit', function(event) { // Made sync
+                event.preventDefault();
+
+                hideErrorDialog(); // Hide any previously shown error dialog
+
+                 // Check if the form fields are filled before starting verification
+                const allFieldsFilled = emailUsernameInput.value.length > 0 && passwordInput.value.length > 0;
+
+                 if (allFieldsFilled && loginButton.classList.contains('active')) {
+                     // *** Start Verification Step 1: Robot Check ***
+                     showVerificationStep1();
+
+                 } else {
+                     console.log("Form not fully filled or button not active.");
+                     showErrorDialog('Please fill out all fields.'); // Show error if form incomplete
+                 }
+            });
+
+            // Add event listener for the Cancel button in Verification Step 1 (Robot Check)
+            if (cancelVerificationStep1Button) {
+                 cancelVerificationStep1Button.addEventListener('click', () => {
+                     console.log("Verification Step 1 (Robot Check) cancelled.");
+                     hideVerificationStep1();
+                     showErrorDialog("Sign In verification cancelled.");
+                     signinContainer.classList.remove('hidden'); // Show the main form again
+                     grecaptcha.reset(); // Reset reCAPTCHA on cancel
+                 });
+            }
+
+             // Add event listener for the Next Step button in Verification Step 1 (Robot Check)
+             if (nextStep1Button) {
+                 nextStep1Button.addEventListener('click', function() {
+                      console.log("Verification Step 1 (Robot Check) completed. Proceeding to Step 2.");
+                     // This button is only enabled if reCAPTCHA succeeded
+
+                     // *** Proceed to Verification Step 2: Code Generator ***
+                     generatedVerificationCode = generateVerificationCode(); // Generate code for Step 2
+                     showVerificationStep2(generatedVerificationCode); // Show Step 2 dialog
+                 });
+             }
+
+
+             // Add event listener for the Cancel button in Verification Step 2 (Code Generator)
+             if (cancelVerificationStep2Button) {
+                 cancelVerificationStep2Button.addEventListener('click', () => {
+                     console.log("Verification Step 2 (Code Generator) cancelled.");
+                     hideVerificationStep2();
+                     showErrorDialog("Sign In verification cancelled.");
+                     signinContainer.classList.remove('hidden'); // Show the main form again
+                      grecaptcha.reset(); // Reset reCAPTCHA
+                 });
+            }
+
+             // Add event listener for the Verify & Login button in Verification Step 2 (Code Generator)
+            if (verifyAndLoginButton) {
+                 verifyAndLoginButton.addEventListener('click', async function() { // Made async
+                     const enteredCode = verificationCodeInput.value.trim().toUpperCase();
+                     verificationErrorMessageDiv.style.display = 'none'; // Hide previous error
+
+                     if (enteredCode === generatedVerificationCode) {
+                         console.log("Verification code matched! Attempting login...");
+                         // Code matched, now attempt login with credentials
+
+
+                         const emailUsername = emailUsernameInput.value.trim();
+                         const password = passwordInput.value;
+
+                         // --- Attempt Firebase Sign In ---
+                         // Handle login with Email or Username
+                         let loginEmail = emailUsername;
+
+                         // Basic client-side check if it might be a username (doesn't contain @ or .)
+                         if (!emailUsername.includes('@') && !emailUsername.includes('.')) {
+                             console.log("Input looks like a username. Attempting login with username...");
+                             // *** IMPORTANT: In a real app, you would lookup the email associated with this username in your database here. ***
+                             // This client-side example simplifies by *assuming* the input is the email for Firebase Auth.
+                             // This is a major security and functional limitation for true username login.
+
+                             // Conceptual backend lookup would happen here, e.g.:
+                             /*
+                             try {
+                                 const emailFromUsername = await fetchEmailByUsername(username); // Call your backend API
+                                 if (emailFromUsername) {
+                                     loginEmail = emailFromUsername;
+                                     console.log(`Found email ${loginEmail} for username ${username}.`);
+                                 } else {
+                                     showErrorDialog('Username not found.');
+                                     hideVerificationStep2(); // Hide dialog
+                                     signinContainer.classList.remove('hidden'); // Show main form
+                                     grecaptcha.reset();
+                                     checkFormValidity();
+                                     return; // Stop login process
+                                 }
+                             } catch (lookupError) {
+                                  console.error("Error looking up username:", lookupError);
+                                  showErrorDialog('Error looking up username. Please try again.');
+                                 hideVerificationStep2();
+                                 signinContainer.classList.remove('hidden');
+                                 grecaptcha.reset();
+                                 checkFormValidity();
+                                 return;
+                             }
+                             */
+
+                              // For this client-side demo, just use the input as the potential email
+                              console.warn("Username login requires backend lookup. Using input as email for demo.");
+                              loginEmail = emailUsername; // Use input directly
+                         } else {
+                             console.log("Input looks like an email. Attempting login with email...");
+                         }
+
+
+                         try {
+                            const userCredential = await signInWithEmailAndPassword(auth, loginEmail, password);
+                            const user = userCredential.user;
+
+                            console.log("User signed in successfully after verification:", user);
+
+                            hideVerificationStep2(); // Hide verification dialog
+                            showSuccessDialog(); // Show success dialog
+
+                            // In a real app, verify emailVerified status if needed after login.
+
+
+                        } catch (error) {
+                            console.error("Sign In Error after verification:", error);
+                            let userMessage = "An unknown error occurred during sign in.";
+
+                            switch (error.code) {
+                                case 'auth/invalid-email':
+                                    userMessage = 'Invalid email address format.';
+                                    break;
+                                case 'auth/user-disabled':
+                                    userMessage = 'This user account has been disabled.';
+                                    break;
+                                case 'auth/user-not-found':
+                                case 'auth/wrong-password':
+                                case 'auth/invalid-credential':
+                                    userMessage = 'Invalid login credentials.';
+                                    break;
+                                case 'auth/too-many-requests':
+                                    userMessage = 'Too many login attempts. Please try again later.';
+                                    break;
+                                 case 'auth/network-request-failed':
+                                    userMessage = 'Network error. Please check your internet connection.';
+                                    break;
+                                default:
+                                    userMessage = 'Error signing in: ' + error.message;
+                                    break;
+                            }
+
+                            showErrorDialog(userMessage); // Show error in the red dialog
+                            hideVerificationStep2(); // Hide verification dialog on error
+                            signinContainer.classList.remove('hidden'); // Show main form again
+                             grecaptcha.reset(); // Reset reCAPTCHA
+                             checkFormValidity(); // Re-check form validity
+                        }
+
+
+                     } else {
+                         console.log("Verification code mismatch.");
+                         verificationErrorMessageDiv.textContent = "Invalid verification code. Please try again.";
+                         verificationErrorMessageDiv.style.display = 'block';
+                         verificationCodeInput.value = ''; // Clear the input
+                     }
+                 });
+            }
+
+
+             // Add event listener for the Continue button in the success dialog
+            if (signinContinueButton) {
+                 signinContinueButton.addEventListener('click', () => {
+                     hideSuccessDialog();
+                     window.location.href = '../../index.html';
+                 });
+            }
+
+            // Add event listener for the Okay button in the error dialog
+            if (errorDialogOkButton) {
+                errorDialogOkButton.addEventListener('click', () => {
+                    hideErrorDialog();
+                });
+            }
+
+
+            // Function to toggle password visibility (Made globally accessible)
+            function togglePasswordVisibility(fieldId, iconElement) {
+                const passwordInput = document.getElementById(fieldId);
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    iconElement.textContent = 'visibility_off';
+                } else {
+                    passwordInput.type = 'password';
+                    iconElement.textContent = 'visibility';
+                }
+            }
+             window.togglePasswordVisibility = togglePasswordVisibility;
+
+
+         });
+    </script>
+</body>
+</html>

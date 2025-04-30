@@ -1,0 +1,406 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    user-select: none; /* Standard syntax */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    padding-top: 70px; /* Adjusted padding top for smaller logo (60px default + 10px padding = 70px roughly) */
+    height: 100vh; /* Use vh for viewport height */
+    box-sizing: border-box; /* Include padding in height calculation */
+    display: flex; /* Use flexbox to arrange header, main, footer */
+    flex-direction: column; /* Stack children vertically */
+}
+
+header {
+    background-color: #333;
+    padding: 10px 20px;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-sizing: border-box;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 45px; /* Made logo smaller by 25% (was 60px) */
+    width: auto; /* Maintain aspect ratio */
+    margin-right: 20px;
+    user-drag: none; /* Non-standard */
+    -webkit-user-drag: none; /* WebKit specific */
+    /* draggable="false" is in HTML */
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+nav li {
+    margin: 0 10px;
+    position: relative;
+}
+
+.explore-text {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.explore-label {
+    text-decoration: none;
+}
+
+.dropdown:hover .explore-label {
+    text-decoration: underline;
+}
+
+.arrow-icon {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
+.dropdown:hover .arrow-icon {
+    transform: rotate(180deg);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    min-width: 120px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 4px;
+}
+
+.dropdown-content li a {
+    color: #333;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+}
+
+.dropdown-content li a:hover {
+    background-color: #f4f4f4;
+    text-decoration: underline;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-right a {
+    margin-left: 10px;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: opacity 0.3s ease, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    white-space: nowrap;
+}
+
+/* Default style for Administrator button */
+.admin-button {
+    color: #fff;
+    background-color: transparent;
+    border: 1px solid #fff;
+    opacity: 1;
+    cursor: pointer;
+     display: none; /* Initially hidden when logged out */
+}
+
+/* Optional: Style for Admin button when logged in, if different is needed */
+.admin-button.logged-in {
+     /* You could add admin-specific styles here if they differ */
+}
+
+
+.sign-in {
+    color: #fff;
+    background-color: transparent;
+    border: 1px solid #fff;
+     display: inline-block; /* Initially shown when logged out */
+}
+
+.sign-in:hover {
+    background-color: #fff;
+    color: #333;
+}
+
+/* Logged-in User Display */
+.user-display {
+    display: none; /* Initially hidden when logged out */
+    align-items: center;
+    cursor: pointer;
+    margin-left: 10px; /* Space from admin button */
+    position: relative; /* Needed for dropdown positioning */
+}
+
+.user-display .user-email-label {
+    color: #fff;
+    padding: 8px 0; /* Match button vertical padding */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis for long emails */
+    max-width: 150px; /* Limit email width before ellipsis */
+    user-select: text; /* Allow selecting email text */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+.user-display .arrow-icon {
+     font-size: 18px;
+    transition: transform 0.3s ease;
+     margin-left: 5px; /* Space between email and arrow */
+}
+
+/* Rotate arrow up when user dropdown is hovered */
+.user-display:hover .arrow-icon {
+    transform: rotate(180deg);
+}
+
+/* Logged-in User Dropdown Content */
+.user-dropdown-content {
+    display: none; /* Initially hidden */
+     top: calc(100% + 5px); /* Position slightly below the user email */
+     right: 0; /* Align to the right */
+     left: auto; /* Override left: 0 from general dropdown-content */
+}
+
+/* Show the user dropdown content on hover */
+.user-display:hover .user-dropdown-content {
+    display: block;
+}
+
+/* Styles for links within the user dropdown */
+.user-dropdown-content li a {
+    color: #333;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+}
+
+.user-dropdown-content li a:hover {
+    background-color: #f4f4f4;
+    text-decoration: underline;
+}
+
+
+/* Styles for body when logged in */
+body.logged-in .sign-in {
+    display: none; /* Hide Sign In when logged in */
+}
+
+body.logged-in .admin-button,
+body.logged-in .user-display {
+     display: flex; /* Show Admin button and User Display when logged in */
+     align-items: center; /* Ensure items in user-display are centered */
+}
+
+
+main {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-grow: 1;
+    overflow-y: auto;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 40px 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hero h2 {
+    color: #333;
+}
+
+.cta-button {
+    display: inline-block;
+    background-color: #5cb85c;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: #4cae4c;
+}
+
+.content-section {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-section h2 {
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem 0;
+    background-color: #333;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* --- Confirmation Dialog Styles --- */
+
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Dim background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Ensure it's on top */
+    visibility: hidden; /* Initially hidden */
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.dialog-overlay.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+.confirm-dialog {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    overflow: hidden; /* Ensure header background stays within border-radius */
+    transform: scale(0.9); /* Start slightly smaller for animation */
+    transition: transform 0.3s ease;
+}
+
+.dialog-overlay.show .confirm-dialog {
+    transform: scale(1); /* Scale up when shown */
+}
+
+
+.dialog-header {
+    background-color: #e74c3c; /* Red header */
+    height: 8px; /* Thin red bar */
+}
+
+.dialog-content {
+    display: flex;
+    align-items: flex-start; /* Align icon and text to the top */
+    padding: 20px;
+}
+
+.dialog-icon {
+    font-size: 40px; /* Size of the warning icon */
+    color: #e74c3c; /* Red color for the icon */
+    margin-right: 15px;
+    flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+.dialog-text h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.dialog-text p {
+    margin: 0;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+}
+
+.dialog-button {
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-left: 10px; /* Space between buttons */
+    transition: opacity 0.3s ease;
+}
+
+.dialog-button:hover {
+    opacity: 0.9;
+}
+
+.cancel-button {
+    background-color: transparent;
+    color: #555;
+    border: 1px solid #ccc;
+}
+
+.cancel-button:hover {
+    background-color: #f4f4f4;
+}
+
+.logout-button {
+    background-color: #e74c3c; /* Red background */
+    color: #fff;
+    border: 1px solid #e74c3c;
+}
+
+.logout-button:hover {
+    background-color: #c0392b; /* Darker red on hover */
+    border-color: #c0392b;
+}

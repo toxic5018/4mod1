@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4Mod1 - Sign Up</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            overflow: hidden; /* Hide potential scrollbar during animation */
+        }
+
+         /* Define the zoom-in animation for the form container */
+        @keyframes zoomIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Styles for the main signup container */
+        .signup-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            animation: zoomIn 0.6s ease-out forwards;
+            opacity: 0;
+             /* Add transition for fading out later */
+            transition: opacity 0.3s ease-out;
+        }
+
+         /* Class to hide the form container */
+         .signup-container.hidden {
+             opacity: 0;
+             pointer-events: none;
+         }
+
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #999;
+            text-decoration: none;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover {
+            color: #555;
+        }
+
+        .signup-container h2 {
+            margin-top: 0;
+            color: #333;
+             margin-bottom: 30px;
+        }
+
+        .form-logo {
+            width: 80px;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px auto;
+            user-drag: none;
+            -webkit-user-drag: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+             position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+             font-size: 1em;
+             user-select: auto !important;
+            -webkit-user-select: auto !important;
+            -moz-user-select: auto !important;
+            -ms-user-select: auto !important;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-container input {
+            padding-right: 40px;
+        }
+
+        .password-container .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #555;
+            user-select: none;
+            font-size: 20px;
+             z-index: 5;
+        }
+
+         /* Password Strength Indicator */
+        .password-strength-indicator {
+             position: absolute;
+             top: 50%;
+             right: -25px;
+             transform: translateY(-50%);
+             width: 15px;
+             height: 15px;
+             border-radius: 50%;
+             border: 1px solid #ccc;
+             background-color: #bdc3c7;
+             transition: background-color 0.3s ease;
+             z-index: 5;
+        }
+
+         .password-strength-indicator.bad { background-color: #e74c3c; }
+         .password-strength-indicator.medium { background-color: #f1c40f; }
+         .password-strength-indicator.good { background-color: #2ecc71; }
+
+
+         /* Password Requirements List */
+         .password-requirements {
+             list-style: none;
+             padding: 0;
+             margin: 10px 0 0 0;
+             font-size: 0.8em;
+             color: #555;
+             text-align: left;
+             display: none;
+         }
+
+         .password-requirements.show {
+             display: block;
+         }
+
+         .password-requirements li {
+            margin-bottom: 5px;
+             display: flex;
+             align-items: center;
+         }
+
+         .password-requirements li .material-icons {
+             font-size: 16px;
+             margin-right: 5px;
+         }
+
+         .password-requirements li.met .material-icons {
+             color: #2ecc71;
+         }
+
+         .password-requirements li:not(.met) .material-icons {
+             color: #e74c3c;
+         }
+
+
+        /* Hide the recaptcha container in the main form */
+        .recaptcha-container {
+            display: none !important;
+        }
+
+
+        .signup-button { /* This button initiates the verification flow */
+            width: 100%;
+            padding: 12px;
+            background-color: #cccccc;
+            color: #666;
+            border: none;
+            border-radius: 20px;
+            cursor: not-allowed;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, color 0.3s ease, cursor 0.3s ease;
+        }
+
+        .signup-button.active {
+             background: linear-gradient(to right, #5cb85c, #5bc0de);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Hide the old text error message div */
+        .error-message {
+            display: none;
+        }
+
+        .signin-link {
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        .signin-link a {
+            color: #4a90e2;
+            text-decoration: none;
+        }
+
+        .signin-link a:hover {
+            text-decoration: underline;
+        }
+
+
+        /* --- General Dialog Styles (Shared) --- */
+         /* Styles for the modal overlay (dim background) */
+        .dialog-overlay {
+             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center;
+            align-items: center; z-index: 2000; visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+         .dialog-overlay.show { visibility: visible; opacity: 1; }
+
+        /* Styles for the dialog box */
+        .dialog {
+            background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 400px; width: 90%; overflow: hidden; transform: scale(0.9);
+            transition: transform 0.3s ease; text-align: center;
+        }
+        .dialog-overlay.show .dialog { transform: scale(1); }
+
+         /* Styles for the dialog header bar */
+        .dialog-header { height: 8px; }
+         .dialog-header.gray { background-color: #bdc3c7; } /* Gray header */
+         .dialog-header.green { background-color: #5cb85c; } /* Green header */
+         .dialog-header.red { background-color: #e74c3c; } /* Red header */
+         .dialog-header.yellow { background-color: #f1c40f; } /* Yellow header */
+
+
+         /* Styles for the main content area within a dialog */
+        .dialog-content {
+             display: flex; flex-direction: column; align-items: center; padding: 20px;
+        }
+        .dialog-content.horizontal {
+             flex-direction: row;
+            align-items: flex-start;
+        }
+
+
+         /* Styles for icons within dialogs */
+        .dialog-icon { font-size: 60px; margin-bottom: 10px; }
+         .dialog-content.horizontal .dialog-icon { font-size: 40px; margin-right: 15px; margin-bottom: 0; flex-shrink: 0; }
+         .dialog-icon.gray { color: #95a5a6; } /* Gray icon */
+         .dialog-icon.green { color: #5cb85c; } /* Green icon */
+         .dialog-icon.red { color: #e74c3c; } /* Red icon */
+         .dialog-icon.yellow { color: #f1c40f; } /* Yellow icon */
+
+
+         /* Styles for text content within dialogs */
+        .dialog-text {
+             flex-grow: 1;
+            text-align: center;
+        }
+         .dialog-content.horizontal .dialog-text {
+             text-align: left;
+         }
+
+        .dialog-text h3 { margin-top: 0; margin-bottom: 5px; color: #333; }
+        .dialog-text p { margin: 0; color: #555; font-size: 0.9em; }
+
+
+         /* Styles for the reCAPTCHA container inside a dialog */
+         .dialog-recaptcha-container {
+             margin: 20px 0;
+         }
+
+         /* Styles for the generated code display */
+        .generated-code-display {
+             font-size: 2.5em; font-weight: bold; margin: 20px 0; letter-spacing: 2px;
+            color: #333; user-select: text !important; -webkit-user-select: text !important;
+            -moz-user-select: text !important; -ms-user-select: text !important;
+        }
+
+        /* Styles for verification code input */
+        .verification-code-input {
+             width: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;
+            text-align: center; font-size: 1.2em; margin-bottom: 20px; user-select: auto !important;
+            -webkit-user-select: auto !important; -moz-user-select: auto !important; -ms-user-select: auto !important;
+        }
+
+        /* Styles for the buttons container within a dialog */
+        .dialog-buttons { display: flex; justify-content: center; padding: 15px 20px; border-top: 1px solid #eee; }
+
+         /* General style for dialog buttons */
+        .dialog-button { padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 1em; margin: 0 10px; transition: opacity 0.3s ease; }
+         .dialog-buttons.right-align { justify-content: flex-end; } /* Align buttons to the right */
+         .dialog-buttons.right-align .dialog-button {
+             padding: 8px 15px; border-radius: 4px; font-size: 0.9em;
+         }
+
+
+         /* Specific button styles */
+        .dialog-button.cancel-button { background-color: transparent; color: #555; border: 1px solid #ccc; }
+        .dialog-button.cancel-button:hover { background-color: #f4f4f4; }
+
+        .dialog-button.verify-button { background-color: #3498db; color: #fff; border: 1px solid #3498db; } /* Blue */
+         .dialog-button.verify-button:hover { background-color: #2980b9; border-color: #2980db; }
+
+         .dialog-button.next-button { background-color: #5cb85c; color: #fff; border: 1px solid #5cb85c; } /* Green */
+         .dialog-button.next-button:hover { background-color: #4cae4c; border-color: #4cae4c; }
+
+         .dialog-button.continue-button { background-color: #5cb85c; color: #fff; border: 1px solid #5cb85c; } /* Green */
+         .dialog-button.continue-button:hover { background-color: #4cae4c; border-color: #4cae4c; }
+
+         .dialog-button.signin-alt-button { background-color: transparent; color: #4a90e2; border: 1px solid #4a90e2; } /* Blue Outline */
+         .dialog-button.signin-alt-button:hover { background-color: #f4f4f4; }
+
+
+         /* Error message specifically for verification steps */
+         .verification-error-message {
+            color: red; font-size: 0.9em; margin-top: -10px; margin-bottom: 15px;
+            text-align: center; display: none;
+         }
+
+        /* --- Red Error Dialog Styles (Uses General Dialog Classes) --- */
+         .error-dialog-overlay { }
+         .error-dialog { }
+         .dialog-header.red.error-dialog-header { background-color: #e74c3c; }
+         .dialog-content.horizontal.error-dialog-content {
+             flex-direction: row;
+             align-items: flex-start;
+         }
+         .error-icon { color: #e74c3c; }
+         .dialog-text.error-dialog-text {
+             text-align: left;
+             flex-grow: 1;
+         }
+         .error-dialog-text h3 {}
+         .error-dialog-text p {}
+         .dialog-buttons.right-align.error-dialog-buttons { justify-content: flex-end; }
+         .dialog-button.error-dialog-button {
+             padding: 8px 15px; border-radius: 4px; font-size: 0.9em;
+             background-color: #3498db; color: #fff; border: 1px solid #3498db;
+         }
+          .dialog-button.error-dialog-button:hover { background-color: #2980b9; border-color: #2980db; }
+
+
+         /* --- Green Success Dialog Styles (Uses General Dialog Classes) --- */
+         .success-dialog-overlay {}
+        .success-dialog {}
+        .dialog-header.green.success-dialog-header { background-color: #5cb85c; }
+        .dialog-content.success-dialog-content {
+            flex-direction: column;
+            align-items: center;
+        }
+        .success-dialog-icon { color: #5cb85c; }
+        .dialog-text.success-dialog-text {
+             text-align: center;
+        }
+        .dialog-text h3 {}
+        .dialog-text p {}
+        .dialog-buttons.success-dialog-buttons { justify-content: center; }
+         .dialog-button.signin-alt-button, .dialog-button.continue-button {}
+
+
+         /* New Warning Dialog Styles (Similar to Error, but yellow/orange) */
+         .warning-dialog-overlay {
+             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+             background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center;
+             align-items: center; z-index: 2000; visibility: hidden; opacity: 0;
+             transition: opacity 0.3s ease, visibility 0.3s ease;
+         }
+         .warning-dialog-overlay.show { visibility: visible; opacity: 1; }
+
+         .warning-dialog {
+             background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+             max-width: 400px; width: 90%; overflow: hidden; transform: scale(0.9);
+             transition: transform 0.3s ease; text-align: center;
+         }
+         .warning-dialog-overlay.show .warning-dialog { transform: scale(1); }
+
+         .warning-dialog-header {
+             background-color: #f1c40f; /* Yellow header */
+             height: 8px;
+         }
+
+         .dialog-content.horizontal.warning-dialog-content {
+             display: flex; align-items: flex-start; padding: 20px;
+         }
+
+         .warning-icon {
+             font-size: 40px; color: #f1c40f; margin-right: 15px; flex-shrink: 0;
+         }
+
+         .dialog-text.warning-dialog-text {
+             flex-grow: 1; text-align: left;
+         }
+
+         .warning-dialog-text h3 { margin-top: 0; margin-bottom: 5px; color: #333; }
+         .dialog-text p { margin: 0; color: #555; font-size: 0.9em; }
+
+         .dialog-buttons.right-align.warning-dialog-buttons {
+             display: flex; justify-content: flex-end; padding: 15px 20px; border-top: 1px solid #eee;
+         }
+
+         .dialog-button.warning-dialog-button {
+             padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 0.9em;
+             transition: opacity 0.3s ease; background-color: #3498db; color: #fff; border: 1px solid #3498db;
+         }
+         .dialog-button.warning-dialog-button:hover { opacity: 0.9; background-color: #2980b9; border-color: #2980db; }
+
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+         <a href="../../../index.html" class="close-button"><i class="material-icons">close</i></a>
+
+        <h2>Sign Up</h2>
+        <img src="../../../assets/logo.png" alt="4Mod1 Logo" class="form-logo" draggable="false">
+        <form id="signupForm">
+             <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                 <div class="password-container">
+                    <input type="password" id="password-signup" name="password" required>
+                     <i class="material-icons toggle-password" data-target-password="password-signup">visibility</i>
+                 </div>
+                 <div class="password-strength-indicator" id="password-strength-indicator"></div>
+             </div>
+             <ul class="password-requirements" id="password-requirements">
+                 <li id="req-length"><i class="material-icons">close</i> Require 6-20 characters</li>
+                 <li id="req-uppercase"><i class="material-icons">close</i> Require uppercase character</li>
+                 <li id="req-special"><i class="material-icons">close</i> Require special character (!@#$%^&*)</li>
+             </ul>
+
+             <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                 <div class="password-container">
+                    <input type="password" id="confirm-password-signup" name="confirm-password" required>
+                     <i class="material-icons toggle-password" data-target-password="confirm-password-signup">visibility</i>
+                 </div>
+            </div>
+
+            <button type="submit" class="signup-button" disabled>START VERIFICATION</button>
+        </form>
+        <p class="signin-link">Already have an account? <a href="../../signin/index.html">Sign In</a></p>
+    </div>
+
+    <div id="signup-success-overlay" class="dialog-overlay success-dialog-overlay">
+        <div id="signup-success-dialog" class="dialog success-dialog">
+            <div class="dialog-header green success-dialog-header"></div>
+            <div class="dialog-content success-dialog-content">
+                <i class="material-icons dialog-icon green success-dialog-icon">check_circle</i>
+                <div class="dialog-text success-dialog-text">
+                    <h3>Sign Up Successful!</h3>
+                    <p id="signup-success-message">Your account has been created.</p>
+                </div>
+            </div>
+            <div class="dialog-buttons success-dialog-buttons">
+                <button id="signup-signin-button" class="dialog-button signin-alt-button">Sign In</button>
+                <button id="signup-continue-button" class="dialog-button continue-button">Continue</button>
+            </div>
+        </div>
+    </div>
+
+     <div id="error-dialog-overlay" class="dialog-overlay error-dialog-overlay">
+        <div id="error-dialog" class="dialog error-dialog">
+            <div class="dialog-header red error-dialog-header"></div>
+            <div class="dialog-content horizontal error-dialog-content">
+                <i class="material-icons dialog-icon red error-icon">warning</i>
+                <div class="dialog-text error-dialog-text">
+                    <h3>Error</h3>
+                    <p id="error-dialog-message"></p>
+                </div>
+            </div>
+            <div class="dialog-buttons right-align error-dialog-buttons">
+                <button id="error-dialog-ok-button" class="dialog-button error-dialog-button">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="warning-dialog-overlay" class="dialog-overlay warning-dialog-overlay">
+        <div id="warning-dialog" class="dialog warning-dialog">
+            <div class="dialog-header yellow warning-dialog-header"></div>
+            <div class="dialog-content horizontal warning-dialog-content">
+                <i class="material-icons dialog-icon yellow warning-icon">warning</i>
+                <div class="dialog-text warning-dialog-text">
+                    <h3>Warning</h3>
+                    <p id="warning-dialog-message"></p>
+                </div>
+            </div>
+            <div class="dialog-buttons right-align warning-dialog-buttons">
+                <button id="warning-dialog-ok-button" class="dialog-button warning-dialog-button">Okay</button>
+            </div>
+        </div>
+    </div>
+
+
+     <div id="verification-step1-overlay" class="dialog-overlay verification-dialog-overlay">
+        <div id="verification-step1-dialog" class="dialog verification-dialog">
+            <div class="dialog-header gray verification-dialog-header"></div>
+            <div class="dialog-content verification-dialog-content">
+                 <i class="material-icons dialog-icon gray verification-icon">android</i>
+                <div class="dialog-text verification-dialog-text">
+                    <h3>Robot Check</h3>
+                    <p>(Step 1 of 3)</p>
+                </div>
+                 <div class="dialog-recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="6LdUciYrAAAAABMs9-fVhMTxZ0XJEIdWARfTqPOO" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+                </div>
+                 <div id="recaptcha-error-message-signup" class="verification-error-message"></div>
+                 <div class="dialog-buttons verification-dialog-buttons">
+                    <button id="cancel-verification-step1-signup" class="dialog-button cancel-button">Cancel</button>
+                    <button id="next-step1-button" class="dialog-button next-button" disabled>Next Step</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+     <div id="verification-step2-overlay" class="dialog-overlay verification-dialog-overlay">
+        <div id="verification-step2-dialog" class="dialog verification-dialog">
+            <div class="dialog-header gray verification-dialog-header"></div>
+             <div class="dialog-content verification-dialog-content">
+                 <i class="material-icons dialog-icon gray verification-icon">vpn_key</i>
+                <div class="dialog-text verification-dialog-text">
+                    <h3>Verification Code</h3>
+                    <p>(Step 2 of 3)</p>
+                     <p>Enter the code displayed below:</p>
+                </div>
+                 <div class="generated-code-display" id="generated-code-display"></div>
+                 <input type="text" id="verification-code-input-signup" class="verification-code-input" maxlength="5" placeholder="Enter Code">
+                 <div id="verification-error-message-signup" class="verification-error-message"></div>
+                 <div class="dialog-buttons verification-dialog-buttons">
+                    <button id="cancel-verification-step2-signup" class="dialog-button cancel-button">Cancel</button>
+                    <button id="next-step2-button" class="dialog-button next-button">Next Step</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+     <div id="verification-step3-overlay" class="dialog-overlay verification-dialog-overlay">
+        <div id="verification-step3-dialog" class="dialog verification-dialog">
+            <div class="dialog-header gray verification-dialog-header"></div>
+             <div class="dialog-content verification-dialog-content">
+                 <i class="material-icons dialog-icon gray verification-icon">email</i>
+                <div class="dialog-text verification-dialog-text">
+                    <h3>Email Verification Request</h3>
+                    <p>(Step 3 of 3)</p>
+                     <p>Click the button below to send a verification email to <strong id="verification-email-placeholder"></strong> and complete your sign up.</p>
+                </div>
+                 <div class="dialog-buttons verification-dialog-buttons">
+                    <button id="cancel-verification-step3-signup" class="dialog-button cancel-button">Cancel</button>
+                    <button id="send-verification-email-button" class="dialog-button verify-button">Send</button> </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Import Firebase functions using modular syntax
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+        // Import Realtime Database functions
+        import { getDatabase, ref, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
+
+        // Your web app's Firebase configuration (Paste from your config)
+        const firebaseConfig = {
+          apiKey: "AIzaSyDjI46S2PGPbUsdvQfWXA0EQ6Pd9lpBRCE",
+          authDomain: "toxicstudios-6de44.firebaseapp.com",
+          // Use databaseURL for Realtime Database
+          databaseURL: "https://toxicstudios-6de44-default-rtdb.firebaseio.com",
+          projectId: "toxicstudios-6de44",
+          storageBucket: "toxicstudios-6de44.firebasestorage.app",
+          messagingSenderId: "22447277764",
+          appId: "1:22447277764:web:7635c6bdb024e0d8b6ab91",
+          measurementId: "G-9CBQQD863T"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); // Get Realtime Database instance
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const signupContainer = document.querySelector('.signup-container');
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password-signup');
+            const confirmPasswordInput = document.getElementById('confirm-password-signup');
+            const signupButton = document.querySelector('.signup-button');
+
+             // Password Strength Elements
+            const passwordStrengthIndicator = document.getElementById('password-strength-indicator');
+            const passwordRequirementsList = document.getElementById('password-requirements');
+            const requirements = {
+                length: document.getElementById('req-length'),
+                uppercase: document.getElementById('req-uppercase'),
+                specialChar: document.getElementById('req-special')
+            };
+
+             // Success Dialog Elements
+            const successDialogOverlay = document.getElementById('signup-success-overlay');
+            const signupSuccessMessage = document.getElementById('signup-success-message');
+            const signupSigninButton = document.getElementById('signup-signin-button');
+            const signupContinueButton = document.getElementById('signup-continue-button');
+
+             // Error Dialog Elements
+            const errorDialogOverlay = document.getElementById('error-dialog-overlay');
+            const errorDialogMessage = document.getElementById('error-dialog-message');
+            const errorDialogOkButton = document.getElementById('error-dialog-ok-button');
+
+             // Warning Dialog Elements
+            const warningDialogOverlay = document.getElementById('warning-dialog-overlay');
+            const warningDialogMessage = document.getElementById('warning-dialog-message');
+            const warningDialogOkButton = document.getElementById('warning-dialog-ok-button');
+
+
+             // Verification Step 1 Dialog Elements (Robot Check)
+            const verificationStep1Overlay = document.getElementById('verification-step1-overlay');
+            const verificationStep1Dialog = document.getElementById('verification-step1-dialog');
+            const recaptchaErrorMessageDiv = document.getElementById('recaptcha-error-message-signup');
+            const cancelVerificationStep1Button = document.getElementById('cancel-verification-step1-signup');
+            const nextStep1Button = document.getElementById('next-step1-button');
+
+             // Verification Step 2 Dialog Elements (Code Generator)
+            const verificationStep2Overlay = document.getElementById('verification-step2-overlay');
+            const verificationStep2Dialog = document.getElementById('verification-step2-dialog');
+            const generatedCodeDisplay = document.getElementById('generated-code-display');
+            const verificationCodeInput = document.getElementById('verification-code-input-signup');
+            const verificationErrorMessageDiv = document.getElementById('verification-error-message-signup');
+            const cancelVerificationStep2Button = document.getElementById('cancel-verification-step2-signup');
+            const nextStep2Button = document.getElementById('next-step2-button');
+
+             // Verification Step 3 Dialog Elements (Email Confirmation)
+            const verificationStep3Overlay = document.getElementById('verification-step3-overlay');
+            const verificationStep3Dialog = document.getElementById('verification-step3-dialog');
+            const verificationEmailPlaceholder = document.getElementById('verification-email-placeholder');
+            const cancelVerificationStep3Button = document.getElementById('cancel-verification-step3-signup');
+            const sendVerificationEmailButton = document.getElementById('send-verification-email-button');
+
+            // Get references to password toggle icons
+            const passwordToggleIcons = document.querySelectorAll('.password-container .toggle-password');
+
+
+            let generatedVerificationCode = null;
+            let currentUser = null;
+
+
+            // Function to generate a random 5-character code (letters and numbers)
+            function generateVerificationCode(length = 5) {
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                const charactersLength = characters.length;
+                for (let i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+                return result;
+            }
+
+            // Function to check password strength
+            function checkPasswordStrength(password) {
+                let strength = 0;
+                const requirementsMet = {
+                    length: password.length >= 6 && password.length <= 20,
+                    uppercase: /[A-Z]/.test(password),
+                    specialChar: /[!@#$%^&*]/.test(password) // Example special characters
+                };
+
+                if (requirementsMet.length) strength++;
+                if (requirementsMet.uppercase) strength++;
+                if (requirementsMet.specialChar) strength++;
+
+                // Update requirement list icons/colors
+                requirements.length.classList.toggle('met', requirementsMet.length);
+                requirements.uppercase.classList.toggle('met', requirementsMet.uppercase);
+                requirements.specialChar.classList.toggle('met', requirementsMet.specialChar);
+
+                 requirements.length.querySelector('.material-icons').textContent = requirementsMet.length ? 'check_circle' : 'close';
+                 requirements.uppercase.querySelector('.material-icons').textContent = requirementsMet.uppercase ? 'check_circle' : 'close';
+                 requirements.specialChar.querySelector('.material-icons').textContent = requirementsMet.specialChar ? 'check_circle' : 'close';
+
+
+                // Update indicator color based on strength
+                passwordStrengthIndicator.classList.remove('bad', 'medium', 'good');
+                if (password.length === 0) {
+                     passwordStrengthIndicator.style.backgroundColor = '#bdc3c7'; // Gray
+                } else if (strength === 3) {
+                     passwordStrengthIndicator.classList.add('good');
+                } else if (strength >= 1) {
+                    passwordStrengthIndicator.classList.add('medium');
+                } else {
+                    passwordStrengthIndicator.classList.add('bad');
+                }
+
+                 // Return boolean indicating if all requirements are met for form validation
+                 return requirementsMet.length && requirementsMet.uppercase && requirementsMet.specialChar;
+            }
+
+
+            // Function called by reCAPTCHA when verification succeeds
+            window.onRecaptchaSuccess = function() {
+                 console.log('reCAPTCHA verified!');
+                 if (verificationStep1Overlay.classList.contains('show')) {
+                     recaptchaErrorMessageDiv.style.display = 'none';
+                     nextStep1Button.disabled = false;
+                 }
+            };
+
+             // Function called by reCAPTCHA when verification expires
+            window.onRecaptchaExpired = function() {
+                console.log('reCAPTCHA expired, resetting...');
+                 if (verificationStep1Overlay.classList.contains('show')) {
+                    recaptchaErrorMessageDiv.textContent = 'reCAPTCHA expired. Please verify again.';
+                    recaptchaErrorMessageDiv.style.display = 'block';
+                    nextStep1Button.disabled = true;
+                    grecaptcha.reset();
+                 }
+            };
+
+
+            // Function to hide all dialogs
+            function hideAllDialogs() {
+                hideSuccessDialog();
+                hideErrorDialog();
+                hideWarningDialog();
+                hideVerificationStep1();
+                hideVerificationStep2();
+                hideVerificationStep3();
+            }
+
+            // Function to show the success dialog
+            function showSuccessDialog(message = 'Your account has been created.') {
+                hideAllDialogs();
+                if (successDialogOverlay && signupSuccessMessage) {
+                    signupSuccessMessage.textContent = message;
+                    successDialogOverlay.classList.add('show');
+                }
+            }
+
+             // Function to hide the success dialog
+            function hideSuccessDialog() {
+                 if (successDialogOverlay) {
+                    successDialogOverlay.classList.remove('show');
+                 }
+            }
+
+             // Function to show the error dialog
+             function showErrorDialog(message) {
+                 hideAllDialogs();
+                 signupContainer.classList.remove('hidden'); // Show main form
+
+                if (errorDialogOverlay && errorDialogMessage) {
+                     errorDialogMessage.textContent = message;
+                    errorDialogOverlay.classList.add('show');
+                }
+             }
+
+             // Function to hide the error dialog
+             function hideErrorDialog() {
+                 if (errorDialogOverlay) {
+                    errorDialogOverlay.classList.remove('show');
+                 }
+            }
+
+             // Function to show the warning dialog
+             function showWarningDialog(message) {
+                 hideAllDialogs();
+                 signupContainer.classList.remove('hidden'); // Show main form
+
+                 if (warningDialogOverlay && warningDialogMessage) {
+                     warningDialogMessage.textContent = message;
+                     warningDialogOverlay.classList.add('show');
+                 }
+             }
+
+             // Function to hide the warning dialog
+             function hideWarningDialog() {
+                 if (warningDialogOverlay) {
+                     warningDialogOverlay.classList.remove('show');
+                 }
+             }
+
+
+            // Function to show Verification Step 1 Dialog (Robot Check)
+            function showVerificationStep1() {
+                 hideAllDialogs();
+                 signupContainer.classList.add('hidden');
+                 recaptchaErrorMessageDiv.style.display = 'none';
+                 nextStep1Button.disabled = true;
+                 if (verificationStep1Overlay) {
+                    verificationStep1Overlay.classList.add('show');
+                 }
+            }
+
+             // Function to hide Verification Step 1 Dialog
+            function hideVerificationStep1() {
+                 if (verificationStep1Overlay) {
+                    verificationStep1Overlay.classList.remove('show');
+                     grecaptcha.reset();
+                 }
+            }
+
+             // Function to show Verification Step 2 Dialog (Code Generator)
+            function showVerificationStep2(code) {
+                 hideVerificationStep1();
+                 hideErrorDialog();
+                 hideWarningDialog();
+                 if (verificationStep2Overlay) {
+                     generatedCodeDisplay.textContent = code;
+                     verificationCodeInput.value = '';
+                     verificationErrorMessageDiv.style.display = 'none';
+                    verificationStep2Overlay.classList.add('show');
+                 }
+            }
+
+             // Function to hide Verification Step 2 Dialog
+            function hideVerificationStep2() {
+                 if (verificationStep2Overlay) {
+                    verificationStep2Overlay.classList.remove('show');
+                 }
+            }
+
+             // Function to show Verification Step 3 Dialog (Email Confirmation)
+            function showVerificationStep3(email) {
+                 hideVerificationStep2();
+                 hideErrorDialog();
+                 hideWarningDialog();
+                 if (verificationStep3Overlay) {
+                     verificationEmailPlaceholder.textContent = email;
+                    verificationStep3Overlay.classList.add('show');
+                 }
+            }
+
+             // Function to hide Verification Step 3 Dialog
+            function hideVerificationStep3() {
+                 if (verificationStep3Overlay) {
+                    verificationStep3Overlay.classList.remove('show');
+                 }
+            }
+
+
+             function checkFormValidity() {
+                const allFieldsFilled = usernameInput.value.length > 0 &&
+                                        emailInput.value.length > 0 &&
+                                        passwordInput.value.length > 0 &&
+                                        confirmPasswordInput.value.length > 0;
+
+                const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
+
+                 const isPasswordStrong = checkPasswordStrength(passwordInput.value);
+
+
+                if (allFieldsFilled && passwordsMatch && isPasswordStrong) {
+                    signupButton.classList.add('active');
+                     signupButton.disabled = false;
+                     signupButton.textContent = 'Start Verification';
+                } else {
+                    signupButton.classList.remove('active');
+                    signupButton.disabled = true;
+                    signupButton.textContent = 'SIGN UP';
+                }
+            }
+
+
+            // Input listener for password to show/hide requirements and update strength
+            passwordInput.addEventListener('input', () => {
+                 passwordRequirementsList.classList.add('show');
+                 checkFormValidity();
+            });
+
+             passwordInput.addEventListener('blur', () => {
+                 if (passwordInput.value.length === 0 || !checkPasswordStrength(passwordInput.value)) {
+                     passwordRequirementsList.classList.remove('show');
+                 }
+             });
+
+             // Add event listeners to the password toggle icons using their data attribute
+            passwordToggleIcons.forEach(icon => {
+                icon.addEventListener('click', () => {
+                    const targetId = icon.dataset.targetPassword;
+                    const targetInput = document.getElementById(targetId);
+                    if (targetInput.type === 'password') {
+                        targetInput.type = 'text';
+                        icon.textContent = 'visibility_off';
+                    } else {
+                        targetInput.type = 'password';
+                        icon.textContent = 'visibility';
+                    }
+                });
+            });
+
+
+            // Add input listeners to trigger form validation and button text change
+            usernameInput.addEventListener('input', checkFormValidity);
+            emailInput.addEventListener('input', checkFormValidity);
+            confirmPasswordInput.addEventListener('input', checkFormValidity);
+
+
+            setTimeout(checkFormValidity, 500);
+
+
+            document.getElementById('signupForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                hideAllDialogs();
+
+                 const allFieldsFilled = usernameInput.value.length > 0 &&
+                                        emailInput.value.length > 0 &&
+                                        passwordInput.value.length > 0 &&
+                                        confirmPasswordInput.value.length > 0;
+
+                const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
+
+                 const isPasswordStrong = checkPasswordStrength(passwordInput.value);
+
+
+                 if (allFieldsFilled && passwordsMatch && isPasswordStrong && signupButton.classList.contains('active')) {
+                     // *** Start Verification Step 1: Robot Check (reCAPTCHA) ***
+                     console.log('Starting verification process (Step 1: Robot Check)...');
+                     showVerificationStep1();
+
+                 } else {
+                     console.log("Main form not valid for starting verification.");
+                    showErrorDialog('Please fill out all fields correctly.');
+                 }
+            });
+
+            // Add event listener for the Cancel button in Verification Step 1 (Robot Check)
+            if (cancelVerificationStep1Button) {
+                 cancelVerificationStep1Button.addEventListener('click', () => {
+                     console.log("Verification Step 1 (Robot Check) cancelled.");
+                     showErrorDialog("Sign Up verification cancelled.");
+                     signupContainer.classList.remove('hidden');
+                 });
+            }
+
+             // Add event listener for the Next Step button in Verification Step 1 (Robot Check)
+             if (nextStep1Button) {
+                 nextStep1Button.addEventListener('click', function() {
+                      console.log("Verification Step 1 (Robot Check) completed. Proceeding to Step 2.");
+
+                     // *** Proceed to Verification Step 2: Code Generator ***
+                     generatedVerificationCode = generateVerificationCode();
+                     showVerificationStep2(generatedVerificationCode);
+                 });
+             }
+
+             // Add event listener for the Cancel button in Verification Step 2 (Code Generator)
+             if (cancelVerificationStep2Button) {
+                 cancelVerificationStep2Button.addEventListener('click', () => {
+                     console.log("Verification Step 2 (Code Generator) cancelled.");
+                     showErrorDialog("Sign Up verification cancelled during code check.");
+                     signupContainer.classList.remove('hidden');
+                      grecaptcha.reset();
+                 });
+            }
+
+             // Add event listener for the Next Step button in Verification Step 2 (Code Generator)
+            if (nextStep2Button) {
+                 nextStep2Button.addEventListener('click', function() {
+                     const enteredCode = verificationCodeInput.value.trim().toUpperCase();
+                     verificationErrorMessageDiv.style.display = 'none';
+
+                     if (enteredCode === generatedVerificationCode) {
+                         console.log("Verification code matched! Proceeding to Step 3.");
+
+                         // *** Proceed to Verification Step 3: Email Verification Request ***
+                          const email = emailInput.value;
+                          if (email) {
+                             showVerificationStep3(email);
+                         } else {
+                             console.error("Email not available for Step 3.");
+                             showErrorDialog("An internal error occurred. Please try signing up again.");
+                             hideVerificationStep2();
+                             signupContainer.classList.remove('hidden');
+                             grecaptcha.reset();
+                         }
+
+                     } else {
+                         console.log("Verification code mismatch in Step 2.");
+                         verificationErrorMessageDiv.textContent = "Invalid verification code. Please try again.";
+                         verificationErrorMessageDiv.style.display = 'block';
+                         verificationCodeInput.value = '';
+                     }
+                 });
+            }
+
+
+             // Add event listener for the Cancel button in Verification Step 3 (Email Confirmation)
+             if (cancelVerificationStep3Button) {
+                 cancelVerificationStep3Button.addEventListener('click', () => {
+                     console.log("Verification Step 3 (Email Confirmation) cancelled.");
+                     showErrorDialog("Sign Up verification cancelled during email request.");
+                     signupContainer.classList.remove('hidden');
+                      grecaptcha.reset();
+                 });
+            }
+
+
+             // Add event listener for the Send Verification Email button in Verification Step 3
+            if (sendVerificationEmailButton) {
+                 sendVerificationEmailButton.addEventListener('click', async function() {
+                     const email = emailInput.value;
+                     const password = passwordInput.value; // Get the password for Firebase Auth
+                     const username = usernameInput.value;
+
+
+                     // *** Firebase user creation happens here ***
+                     // As per Firebase Auth design, the user account is created before sending the verification email.
+                     // Writing data to Realtime Database happens immediately after user creation.
+                     // Reliably writing data *only* after email verification client-side is not feasible.
+                     // Consider using Realtime Database Security Rules based on the `auth != null && auth.token.email_verified === true`
+                     // condition or a backend trigger (Cloud Functions) for stricter control.
+                     // For security, the raw password is NOT stored in the Realtime Database. Firebase Auth handles password security.
+
+                     try {
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        currentUser = userCredential.user;
+
+
+                        console.log("Firebase user created successfully:", currentUser);
+
+                         let emailSentSuccessfully = false;
+                         let dataSavedSuccessfully = false;
+
+
+                         // Attempt to send the Firebase email verification email
+                         try {
+                              await sendEmailVerification(currentUser);
+                              console.log('Firebase email verification email sent.');
+                              emailSentSuccessfully = true;
+                         } catch (emailError) {
+                             console.error('Error sending Firebase email verification:', emailError);
+                             emailSentSuccessfully = false; // Email sending failed
+                         }
+
+
+                         // Attempt to save user data to Realtime Database
+                         // Path: /4Mod1/profile/account/{uid}
+                         const userProfileRef = ref(db, `4Mod1/profile/account/${currentUser.uid}`);
+                         const userData = {
+                             email: currentUser.email,
+                             username: username,
+                             joinTimestamp: serverTimestamp(), // Use server timestamp for RTDB
+                             moderationStatus: 0,
+                             bio: "" // Add a default empty bio field
+                             // Note: Sequential profileId is not implemented client-side due to complexity.
+                             // The user's UID is used as the key in RTDB.
+                             // Password is NOT stored in the database for security reasons.
+                         };
+
+                         try {
+                             await set(userProfileRef, userData);
+                             console.log("User data saved to Realtime Database:", userData);
+                             dataSavedSuccessfully = true;
+                         } catch (dbError) {
+                             console.error("Error saving user data to Realtime Database:", dbError);
+                             dataSavedSuccessfully = false;
+                         }
+
+
+                         // --- Handle the outcomes ---
+                         if (emailSentSuccessfully && dataSavedSuccessfully) {
+                             showSuccessDialog("Sign Up successful! Please check your email to verify your address.");
+                         } else if (emailSentSuccessfully && !dataSavedSuccessfully) {
+                             showWarningDialog("Email verification sent, but profile data could not be saved to database. You can update your profile later.");
+                         } else { // Email sending failed (data saving result is secondary in this case)
+                             if (emailError && emailError.code === 'auth/network-request-failed') {
+                                 showErrorDialog("Failed to send verification email (404 network error). Please try signing up again.");
+                             } else {
+                                  showErrorDialog("Failed to send verification email. Please try signing up again.");
+                             }
+                             // Consider deleting the Firebase user here if email sending failed significantly
+                             // This would require backend (Admin SDK)
+                         }
+
+
+                     } catch (error) {
+                        console.error("Error creating Firebase user:", error);
+                        let userMessage = "An unknown error occurred during sign up.";
+                        let shouldRedirectToSignIn = false;
+
+                        switch (error.code) {
+                             case 'auth/email-already-in-use':
+                                userMessage = 'This email address is already in use (403).';
+                                 shouldRedirectToSignIn = true;
+                                break;
+                            case 'auth/invalid-email':
+                                userMessage = 'Invalid email address format.';
+                                break;
+                            case 'auth/operation-not-allowed':
+                                userMessage = 'Email/password sign up is not enabled.';
+                                break;
+                            case 'auth/weak-password':
+                                userMessage = 'Password is too weak. Please choose a stronger one.';
+                                break;
+                             case 'auth/network-request-failed':
+                                userMessage = 'Network error. Please check your internet connection.';
+                                break;
+                            default:
+                                userMessage = 'Error creating account: ' + error.message;
+                                break;
+                        }
+
+                        showErrorDialog(userMessage);
+                        hideVerificationStep3();
+                        signupContainer.classList.remove('hidden');
+                         grecaptcha.reset();
+
+                         // Redirect to sign in page after a delay if email is already in use
+                         if (shouldRedirectToSignIn) {
+                             setTimeout(() => {
+                                 window.location.href = '../../signin/index.html';
+                             }, 5000); // Redirect after 5 seconds
+                         }
+                     }
+                 });
+            }
+
+
+             // Add event listener for the Sign In button in the final success dialog
+            if (signupSigninButton) {
+                 signupSigninButton.addEventListener('click', () => {
+                     hideSuccessDialog();
+                     window.location.href = '../../signin/index.html';
+                 });
+            }
+
+             // Add event listener for the Continue button in the final success dialog
+            if (signupContinueButton) {
+                 signupContinueButton.addEventListener('click', () => {
+                     hideSuccessDialog();
+                     window.location.href = '../../../index.html'; // Redirect to homepage
+                 });
+            }
+
+            // Add event listener for the Okay button in the error dialog
+            if (errorDialogOkButton) {
+                errorDialogOkButton.addEventListener('click', () => {
+                    hideErrorDialog();
+                });
+            }
+
+             // Add event listener for the Okay button in the warning dialog
+             if (warningDialogOkButton) {
+                 warningDialogOkButton.addEventListener('click', () => {
+                      hideWarningDialog();
+                     window.location.href = '../../../index.html'; // Redirect to homepage
+                 });
+             }
+
+
+         });
+
+    </script>
+</body>
+</html>

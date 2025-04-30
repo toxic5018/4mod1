@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4Mod1 - User Profile</title>
+    <link rel="stylesheet" href="../../../style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"></script>
+     <style>
+        body {
+             font-family: sans-serif;
+             margin: 0;
+             background-color: #f4f4f4;
+             color: #333;
+             user-select: none;
+             -webkit-user-select: none;
+             -moz-user-select: none;
+             -ms-user-select: none;
+             /* Keep body overflow auto to allow page scrolling if content exceeds viewport */
+         }
+
+
+        /* Basic styling for the layout based on the screenshot */
+        .profile-layout {
+            display: flex; /* Use flexbox for the main layout */
+            gap: 20px; /* Space between left and right panels */
+            padding: 20px;
+            max-width: 1200px; /* Example max width for the content area */
+            margin: 20px auto; /* Center the layout */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .profile-left-panel {
+            flex: 1; /* Allow left panel to grow */
+            min-width: 300px; /* Minimum width for the left panel */
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content horizontally */
+        }
+
+        .profile-right-panels {
+            flex: 2; /* Allow right panels to take more space */
+            display: flex;
+            flex-direction: column; /* Stack right panels vertically */
+            gap: 20px; /* Space between the two right panels */
+            min-width: 300px; /* Minimum width for the right panels container */
+        }
+
+        .profile-upper-right,
+        .profile-lower-right {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1; /* Allow panels to grow and take equal space */
+            width: 100%; /* Ensure panels take full width of their container */
+        }
+
+        .profile-section-heading {
+            font-size: 1.2em;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            width: 100%; /* Ensure heading spans the width */
+            text-align: left; /* Align heading text to the left */
+        }
+
+
+        /* Styling for the profile picture placeholder */
+        .profile-picture-placeholder {
+            width: 120px; /* Example size */
+            height: 120px; /* Example size */
+            background-color: #eee; /* Placeholder color */
+            border-radius: 50%; /* Make it round */
+            margin-bottom: 20px;
+            overflow: hidden; /* Hide overflow if an image is placed */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #555;
+             cursor: pointer; /* Make it clickable */
+             transition: opacity 0.3s ease;
+             position: relative; /* For potential future overlay */
+        }
+         .profile-picture-placeholder:hover {
+             opacity: 0.8;
+         }
+
+         .profile-picture-placeholder img {
+             width: 100%;
+             height: 100%;
+             object-fit: cover; /* Ensure image covers the area */
+         }
+
+
+        /* Styling for profile info items */
+        .profile-info-item {
+            width: 100%; /* Ensure items take full width */
+            text-align: left;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex; /* Use flexbox for label/value layout */
+            /* Removed justify-content: space-between to allow bio span to take space */
+            align-items: center;
+             position: relative; /* Needed for password toggle */
+        }
+         .profile-info-item:last-child {
+             border-bottom: none; /* No border on the last item */
+             margin-bottom: 0;
+             padding-bottom: 0;
+         }
+
+        .profile-info-item label {
+            flex-shrink: 0; /* Prevent label from shrinking */
+            font-weight: bold;
+            margin-right: 10px; /* Space between label and value */
+            color: #555;
+            font-size: 0.9em;
+        }
+
+         /* Style for displayed span values */
+        .profile-info-item span {
+            flex-grow: 1; /* Allow value to take space */
+            color: #333;
+            font-size: 1em;
+            word-break: break-word; /* Break long words by default */
+        }
+
+         /* Style for bio display span to allow horizontal scrolling */
+         #profile-bio-display {
+             flex-grow: 1;
+             white-space: nowrap; /* Prevent text wrapping */
+             overflow-x: auto; /* Enable horizontal scrolling */
+             -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+             padding-bottom: 5px; /* Add some padding for the scrollbar */
+             box-sizing: border-box;
+             /* Need to ensure container doesn't force wrap */
+             min-width: 0; /* Allow flex item to shrink below content size */
+         }
+
+
+         /* Style for input values (if using inputs) */
+         .profile-info-item input {
+             flex-grow: 1;
+             padding: 5px;
+             border: 1px solid #ddd;
+             border-radius: 4px;
+             font-size: 1em;
+             box-sizing: border-box;
+             user-select: auto !important;
+            -webkit-user-select: auto !important;
+            -moz-user-select: auto !important;
+            -ms-user-select: auto !important;
+         }
+
+         /* Bio textarea styling */
+         .profile-info-item textarea {
+             flex-grow: 1;
+             padding: 10px;
+             border: 1px solid #ddd;
+             border-radius: 4px;
+             font-size: 1em;
+             box-sizing: border-box;
+             min-height: 80px; /* Give some initial height */
+             resize: vertical; /* Allow vertical resizing */
+              user-select: auto !important;
+            -webkit-user-select: auto !important;
+            -moz-user-select: auto !important;
+            -ms-user-select: auto !important;
+         }
+
+
+         /* Password specific styling */
+         .profile-info-item.password-item .profile-info-value {
+             display: flex; /* Use flex for password input and icon */
+             align-items: center;
+             flex-grow: 1;
+             position: relative;
+         }
+
+         .profile-info-item.password-item input {
+             padding-right: 30px; /* Space for icon */
+             flex-grow: 1;
+         }
+
+         .profile-info-item.password-item .toggle-password {
+             position: absolute;
+             top: 50%;
+             right: 5px;
+             transform: translateY(-50%);
+             cursor: pointer;
+             color: #555;
+             font-size: 20px;
+             z-index: 5;
+         }
+
+
+         /* Styling for the Save button placeholder */
+         .save-button-placeholder {
+             width: 100%;
+             padding: 12px;
+             background: linear-gradient(to right, #ff7e5f, #feb47b); /* Example gradient */
+             color: #fff;
+             border: none;
+             border-radius: 20px;
+             cursor: pointer;
+             font-size: 1.1em;
+             margin-top: 20px;
+             transition: opacity 0.3s ease;
+         }
+         .save-button-placeholder:hover {
+             opacity: 0.9;
+         }
+
+         /* Button styles for "My Creations" and "Update Bio" */
+         .profile-action-button {
+             display: block; /* Make buttons take full width */
+             width: 100%;
+             padding: 10px;
+             margin-top: 15px;
+             background-color: #ddd; /* Default state for 'coming soon' */
+             color: #555;
+             border: none;
+             border-radius: 4px;
+             cursor: not-allowed; /* Indicate it's not active */
+             font-size: 0.9em;
+             text-align: center;
+             transition: background-color 0.3s ease;
+         }
+
+          /* Specific styling for the update bio button if needed */
+          #update-bio-button {
+            /* You can add specific styles here if different from default */
+          }
+
+         /* Placeholder styling for blank right panels */
+         .blank-placeholder {
+             color: #777;
+             text-align: center;
+             margin-top: 20px;
+         }
+
+         /* Responsive adjustments */
+         @media (max-width: 768px) {
+             .profile-layout {
+                 flex-direction: column; /* Stack panels vertically on smaller screens */
+             }
+             .profile-left-panel,
+             .profile-right-panels {
+                 flex: none; /* Remove flex growth */
+                 width: 100%; /* Take full width */
+             }
+             .profile-info-item {
+                 flex-direction: column; /* Stack label and value vertically */
+                 align-items: flex-start;
+             }
+             .profile-info-item label {
+                 margin-right: 0;
+                 margin-bottom: 5px;
+             }
+             /* Adjust bio span on smaller screens */
+             #profile-bio-display {
+                  white-space: normal; /* Allow wrapping on small screens */
+                  overflow-x: visible; /* Remove horizontal scrollbar */
+                  padding-bottom: 0;
+                  min-width: auto; /* Remove min-width constraint */
+             }
+         }
+
+
+        /* --- General Dialog Styles (Copied from Sign In/Sign Up for consistency) --- */
+         /* Styles for the modal overlay (dim background) */
+        .dialog-overlay {
+             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center;
+            align-items: center; z-index: 2000; visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+         .dialog-overlay.show { visibility: visible; opacity: 1; }
+
+        /* Styles for the dialog box */
+        .dialog {
+            background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 400px; width: 90%; overflow: hidden; transform: scale(0.9);
+            transition: transform 0.3s ease; text-align: center;
+        }
+        .dialog-overlay.show .dialog { transform: scale(1); }
+
+         /* Styles for the dialog header bar */
+        .dialog-header { height: 8px; }
+         .dialog-header.gray { background-color: #bdc3c7; } /* Gray header */
+         .dialog-header.green { background-color: #5cb85c; } /* Green header */
+         .dialog-header.red { background-color: #e74c3c; } /* Red header */
+         .dialog-header.yellow { background-color: #f1c40f; } /* Yellow header */
+
+
+         /* Styles for the main content area within a dialog */
+        .dialog-content {
+             display: flex; flex-direction: column; align-items: center; padding: 20px;
+        }
+        .dialog-content.horizontal {
+             flex-direction: row;
+            align-items: flex-start;
+        }
+
+
+         /* Styles for icons within dialogs */
+        .dialog-icon { font-size: 60px; margin-bottom: 10px; }
+         .dialog-content.horizontal .dialog-icon { font-size: 40px; margin-right: 15px; margin-bottom: 0; flex-shrink: 0; }
+         .dialog-icon.gray { color: #95a5a6; } /* Gray icon */
+         .dialog-icon.green { color: #5cb85c; } /* Green icon */
+         .dialog-icon.red { color: #e74c3c; } /* Red icon */
+         .dialog-icon.yellow { color: #f1c40f; } /* Yellow icon */
+
+
+         /* Styles for text content within dialogs */
+        .dialog-text {
+             flex-grow: 1;
+            text-align: center;
+        }
+         .dialog-content.horizontal .dialog-text {
+             text-align: left;
+         }
+
+        .dialog-text h3 { margin-top: 0; margin-bottom: 5px; color: #333; }
+        .dialog-text p { margin: 0; color: #555; font-size: 0.9em; }
+
+
+         /* Styles for the reCAPTCHA container inside a dialog */
+         .dialog-recaptcha-container {
+             margin: 20px 0;
+         }
+
+         /* Styles for the generated code display */
+        .generated-code-display {
+             font-size: 2.5em; font-weight: bold; margin: 20px 0; letter-spacing: 2px;
+            color: #333; user-select: text !important; -webkit-user-select: text !important;
+            -moz-user-select: text !important; -ms-user-select: text !important;
+        }
+
+        /* Styles for verification code input */
+        .verification-code-input {
+             width: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;
+            text-align: center; font-size: 1.2em; margin-bottom: 20px; user-select: auto !important;
+            -webkit-user-select: auto !important; -moz-user-select: auto !important; -ms-user-select: auto !important;
+        }
+
+        /* Styles for the buttons container within a dialog */
+        .dialog-buttons { display: flex; justify-content: center; padding: 15px 20px; border-top: 1px solid #eee; }
+
+         /* General style for dialog buttons */
+        .dialog-button { padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 1em; margin: 0 10px; transition: opacity 0.3s ease; }
+         .dialog-buttons.right-align { justify-content: flex-end; } /* Align buttons to the right */
+         .dialog-buttons.right-align .dialog-button {
+             padding: 8px 15px; border-radius: 4px; font-size: 0.9em;
+         }
+
+
+         /* Specific button styles */
+        .dialog-button.cancel-button { background-color: transparent; color: #555; border: 1px solid #ccc; }
+        .dialog-button.cancel-button:hover { background-color: #f4f4f4; }
+
+        .dialog-button.verify-button { background-color: #3498db; color: #fff; border: 1px solid #3498db; } /* Blue */
+         .dialog-button.verify-button:hover { background-color: #2980b9; border-color: #2980db; }
+
+         .dialog-button.next-button { background-color: #5cb85c; color: #fff; border: 1px solid #5cb85c; } /* Green */
+         .dialog-button.next-button:hover { background-color: #4cae4c; border-color: #4cae4c; }
+
+         .dialog-button.continue-button { background-color: #5cb85c; color: #fff; border: 1px solid #5cb85c; } /* Green */
+         .dialog-button.continue-button:hover { background-color: #4cae4c; border-color: #4cae4c; }
+
+         .dialog-button.signin-alt-button { background-color: transparent; color: #4a90e2; border: 1px solid #4a90e2; } /* Blue Outline */
+         .dialog-button.signin-alt-button:hover { background-color: #f4f4f4; }
+
+          .dialog-button.back-button {
+             background-color: #95a5a6; /* Gray */
+             color: #fff;
+          }
+          .dialog-button.back-button:hover {
+             background-color: #7f8c8d;
+          }
+
+
+         /* Error message specifically for verification steps */
+         .verification-error-message {
+            color: red; font-size: 0.9em; margin-top: -10px; margin-bottom: 15px;
+            text-align: center; display: none;
+         }
+
+        /* --- Red Error Dialog Styles (Uses General Dialog Classes) --- */
+         .error-dialog-overlay { }
+         .error-dialog { }
+         .dialog-header.red.error-dialog-header { background-color: #e74c3c; }
+         .dialog-content.horizontal.error-dialog-content {
+             flex-direction: row;
+             align-items: flex-start;
+         }
+         .error-icon { color: #e74c3c; }
+         .dialog-text.error-dialog-text {
+             text-align: left;
+             flex-grow: 1;
+         }
+         .error-dialog-text h3 {}
+         .error-dialog-text p {}
+         .dialog-buttons.right-align.error-dialog-buttons { justify-content: flex-end; }
+         .dialog-button.error-dialog-button {
+             padding: 8px 15px; border-radius: 4px; font-size: 0.9em;
+             background-color: #3498db; color: #fff; border: 1px solid #3498db;
+         }
+          .dialog-button.error-dialog-button:hover { background-color: #2980b9; border-color: #2980db; }
+
+
+         /* --- Green Success Dialog Styles (Uses General Dialog Classes) --- */
+         .success-dialog-overlay {}
+        .success-dialog {}
+        .dialog-header.green.success-dialog-header { background-color: #5cb85c; }
+        .dialog-content.success-dialog-content {
+            flex-direction: column;
+            align-items: center;
+        }
+        .success-dialog-icon { color: #5cb85c; }
+        .dialog-text.success-dialog-text {
+             text-align: center;
+        }
+        .dialog-text h3 {}
+        .dialog-text p {}
+        .dialog-buttons.success-dialog-buttons { justify-content: center; }
+         .dialog-button.signin-alt-button, .dialog-button.continue-button {}
+
+
+         /* New Warning Dialog Styles (Similar to Error, but yellow/orange) */
+         .warning-dialog-overlay {
+             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+             background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center;
+             align-items: center; z-index: 2000; visibility: hidden; opacity: 0;
+             transition: opacity 0.3s ease, visibility 0.3s ease;
+         }
+         .warning-dialog-overlay.show { visibility: visible; opacity: 1; }
+
+         .warning-dialog {
+             background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+             max-width: 400px; width: 90%; overflow: hidden; transform: scale(0.9);
+             transition: transform 0.3s ease; text-align: center;
+         }
+         .warning-dialog-overlay.show .warning-dialog { transform: scale(1); }
+
+         .warning-dialog-header {
+             background-color: #f1c40f; /* Yellow header */
+             height: 8px;
+         }
+
+         .dialog-content.horizontal.warning-dialog-content {
+             display: flex; align-items: flex-start; padding: 20px;
+         }
+
+         .warning-icon {
+             font-size: 40px; color: #f1c40f; margin-right: 15px; flex-shrink: 0;
+         }
+
+         .dialog-text.warning-dialog-text {
+             flex-grow: 1; text-align: left;
+         }
+
+         .warning-dialog-text h3 { margin-top: 0; margin-bottom: 5px; color: #333; }
+         .dialog-text p { margin: 0; color: #555; font-size: 0.9em; }
+
+         .dialog-buttons.right-align.warning-dialog-buttons {
+             display: flex; justify-content: flex-end; padding: 15px 20px; border-top: 1px solid #eee;
+         }
+
+         .dialog-button.warning-dialog-button {
+             padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 0.9em;
+             transition: opacity 0.3s ease; background-color: #3498db; color: #fff; border: 1px solid #3498db;
+         }
+         .dialog-button.warning-dialog-button:hover { opacity: 0.9; background-color: #2980b9; border-color: #2980db; }
+
+
+         /* --- Profile Picture Edit Dialog Styles --- */
+        .pfp-edit-overlay {
+             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
+            align-items: center; z-index: 3000; visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+         .pfp-edit-overlay.show { visibility: visible; opacity: 1; }
+
+        .pfp-edit-dialog {
+            background-color: #fff; border-radius: 8px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+            max-width: 500px; width: 90%; overflow: hidden; transform: scale(0.95);
+            transition: transform 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+             padding: 20px;
+        }
+         .pfp-edit-overlay.show .pfp-edit-dialog { transform: scale(1); }
+
+         .pfp-edit-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between; /* Space out title and close button */
+            align-items: center;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+         }
+
+         .pfp-edit-header h3 {
+             margin: 0;
+             color: #333;
+         }
+
+
+         .pfp-edit-close {
+             font-size: 24px;
+             color: #999;
+             cursor: pointer;
+             transition: color 0.3s ease;
+         }
+         .pfp-edit-close:hover {
+             color: #555;
+         }
+
+         .pfp-edit-content {
+             width: 100%;
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+         }
+
+         .pfp-edit-content p {
+             margin: 10px 0;
+             color: #555;
+             font-size: 0.9em;
+         }
+
+         /* Hide file input visually but keep it accessible */
+         #pfp-upload-input {
+             display: none;
+         }
+
+         .pfp-upload-button {
+             padding: 10px 20px;
+             background-color: #3498db;
+             color: #fff;
+             border: none;
+             border-radius: 4px;
+             cursor: pointer;
+             font-size: 1em;
+             transition: background-color 0.3s ease;
+         }
+         .pfp-upload-button:hover {
+             background-color: #2980b9;
+         }
+
+          /* Styling for the image area and the movable crop circle */
+         .pfp-image-container {
+             position: relative; /* Needed for absolute positioning of circle */
+             width: 100%;
+             max-width: 300px; /* Control max size of the cropping area */
+             aspect-ratio: 1 / 1; /* Maintain square aspect ratio for image area */
+             overflow: hidden; /* Hide parts of the image outside the container */
+             margin: 20px 0;
+             background-color: #f4f4f4;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+         }
+
+         .pfp-image-preview {
+             display: block;
+             max-width: 100%;
+             max-height: 100%;
+             object-fit: contain; /* Contain the whole image within the container */
+              /* Important: The image itself does NOT move */
+         }
+
+         .pfp-crop-circle {
+             position: absolute;
+             width: 100px; /* Size of the crop circle */
+             height: 100px;
+             border-radius: 50%;
+             border: 2px dashed #fff; /* White dashed border for visibility */
+             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* Creates the dark overlay outside the circle */
+             cursor: grab; /* Indicates it can be dragged */
+             z-index: 10; /* Ensure it's above the image */
+             /* Initial position (center) */
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+         }
+
+          .pfp-crop-circle:active {
+              cursor: grabbing; /* Indicate active dragging */
+          }
+
+
+         .pfp-actions {
+             width: 100%;
+             display: flex;
+             justify-content: center;
+             gap: 15px;
+             margin-top: 10px;
+         }
+
+         .pfp-action-button {
+             padding: 10px 20px;
+             border: none;
+             border-radius: 4px;
+             cursor: pointer;
+             font-size: 0.9em;
+             transition: background-color 0.3s ease, opacity 0.3s ease;
+         }
+
+         .pfp-action-button.primary {
+             background-color: #2ecc71; /* Green */
+             color: #fff;
+         }
+         .pfp-action-button.primary:hover {
+             background-color: #27ae60;
+         }
+
+          .pfp-action-button.secondary {
+             background-color: #e74c3c; /* Red */
+             color: #fff;
+         }
+         .pfp-action-button.secondary:hover {
+             background-color: #c0392b;
+         }
+
+         .pfp-action-button.tertiary {
+             background-color: #95a5a6; /* Gray */
+             color: #fff;
+          }
+          .pfp-action-button.tertiary:hover {
+              background-color: #7f8c8d;
+          }
+
+
+         .pfp-action-button:disabled {
+             background-color: #ccc;
+             color: #666;
+             cursor: not-allowed;
+             opacity: 0.7;
+         }
+
+         .pfp-confirm-checkbox {
+             margin-top: 15px;
+             display: flex;
+             align-items: center;
+             font-size: 0.9em;
+             color: #555;
+         }
+          .pfp-confirm-checkbox input[type="checkbox"] {
+              margin-right: 5px;
+              cursor: pointer;
+          }
+
+          .pfp-confirm-checkbox label {
+              cursor: pointer;
+          }
+
+
+         /* Styles for different views within the dialog */
+         .pfp-edit-view {
+             display: none;
+             width: 100%;
+             flex-direction: column;
+             align-items: center;
+         }
+         .pfp-edit-view.show {
+             display: flex;
+         }
+
+    </style>
+</head>
+<body>
+    <header id="header">
+        <div class="header-container">
+            <div class="header-left">
+                <a href="../../../index.html">
+                    <img src="../../../assets/logo.png" alt="4Mod1 Logo" class="logo" draggable="false">
+                </a>
+                <nav>
+                    <ul class="nav-menu">
+                        <li class="dropdown">
+                            <span class="explore-text"><span class="explore-label">Explore</span> <i class="material-icons arrow-icon">arrow_drop_down</i></span>
+                            <ul class="dropdown-content">
+                                <li><a href="../../../index.html">Home</a></li>
+                                <li><a href="#">Games</a></li>
+                                <li><a href="#">Apps</a></li>
+                                <li>
+                                    <a href="#"><strong>Mod</strong> (BETA)</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="header-right">
+                <a href="#" class="admin-button">Administrator</a>
+                <a href="../../signin/index.html" class="sign-in">Sign In</a>
+
+                <div class="user-display dropdown">
+                     <span class="user-email-label"></span> <i class="material-icons arrow-icon">arrow_drop_down</i>
+                     <ul class="dropdown-content user-dropdown-content">
+                        <li><a href="index.html">Profile</a></li>
+                        <li><a href="#">Settings</a></li>
+                        <li id="logout-link-container"><a href="#" id="logout-link">Log Out</a></li>
+                     </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <div class="profile-layout">
+            <div class="profile-left-panel">
+                <div class="profile-picture-placeholder" id="profile-picture-placeholder">
+                     <i class="material-icons">person</i> </div>
+
+                <h3 class="profile-section-heading">My Profile</h3>
+
+                <div class="profile-info-item">
+                    <label>Username:</label>
+                    <span id="profile-username">[Loading Username...]</span>
+                </div>
+                 <div class="profile-info-item">
+                    <label>Email:</label>
+                    <span id="profile-email">[Loading Email...]</span>
+                </div>
+                 <div class="profile-info-item password-item">
+                     <label>Password:</label>
+                     <div class="profile-info-value">
+                        <input type="password" id="profile-password-placeholder" value="********" readonly>
+                        <i class="material-icons toggle-password" id="toggle-profile-password">visibility</i>
+                     </div>
+                 </div>
+
+                 <div class="profile-info-item" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                     <label>User Joined:</label>
+                     <span id="profile-user-joined">[Loading Join Date...]</span>
+                 </div>
+                <div class="profile-info-item">
+                     <label>Moderation Status:</label>
+                     <span id="profile-moderation-status">[Loading Status...]</span>
+                 </div>
+
+                <button class="save-button-placeholder">Save Profile</button>
+
+
+            </div>
+
+            <div class="profile-right-panels">
+                <div class="profile-upper-right">
+                    <h3 class="profile-section-heading">My Public Profile</h3>
+                    <div class="profile-picture-placeholder" style="margin-bottom: 10px; cursor: default;" id="public-profile-picture-placeholder">
+                         <i class="material-icons">person</i> </div>
+                     <div class="profile-info-item" style="border-bottom: none; margin-bottom: 5px; padding-bottom: 0;">
+                         <label>Username:</label>
+                         <span id="public-profile-username">[Loading Username...]</span>
+                     </div>
+
+                    <button class="profile-action-button" id="my-creations-button">My Creations (Coming Soon)</button>
+
+                </div>
+
+                <div class="profile-lower-right">
+                    <h3 class="profile-section-heading">My Public Bio</h3>
+
+                    <div class="profile-info-item" style="border-bottom: none; margin-bottom: 5px; padding-bottom: 0;">
+                        <label>User Joined:</label>
+                        <span id="public-profile-user-joined">[Loading Join Date...]</span>
+                    </div>
+
+                    <div class="profile-info-item" style="flex-direction: column; align-items: flex-start;"> <label style="width: 100%; margin-bottom: 8px;">Bio:</label> <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 5px; box-sizing: border-box;">
+                            <span id="profile-bio-display" style="white-space: nowrap; display: inline-block; min-width: 100%;">[Loading Bio...]</span> </div>
+                     </div>
+
+
+                    <button class="profile-action-button" id="update-bio-button">Update Bio (Coming Soon)</button>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer id="footer">
+        <p>&copy; 2025 4Mod1. All rights reserved.</p>
+    </footer>
+
+    <div id="confirm-dialog-overlay" class="dialog-overlay">
+        <div id="logout-confirm-dialog" class="dialog confirm-dialog">
+            <div class="dialog-header"></div>
+            <div class="dialog-content">
+                <i class="material-icons dialog-icon">warning</i>
+                <div class="dialog-text">
+                    <h3>Log Out</h3>
+                    <p>Are you sure you want to log out?</p>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <button id="cancel-logout" class="dialog-button cancel-button">Cancel</button>
+                <button id="confirm-logout" class="dialog-button logout-button">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+     <div id="profile-verification-overlay" class="dialog-overlay">
+        <div id="profile-verification-dialog" class="dialog verification-dialog">
+            <div class="dialog-header gray"></div>
+            <div class="dialog-content">
+                 <i class="material-icons dialog-icon gray">vpn_key</i>
+                <div class="dialog-text">
+                    <h3>Verify to View Password</h3>
+                    <p>Enter the code displayed below:</p>
+                </div>
+                 <div class="generated-code-display" id="profile-generated-code-display"></div>
+                 <input type="text" id="profile-verification-code-input" class="verification-code-input" maxlength="5" placeholder="Enter Code">
+                 <div id="profile-verification-error-message" class="verification-error-message"></div>
+                 <div class="dialog-buttons">
+                    <button id="cancel-profile-verification" class="dialog-button cancel-button">Cancel</button>
+                    <button id="verify-profile-code-button" class="dialog-button verify-button">Verify</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+     <div id="error-dialog-overlay" class="dialog-overlay error-dialog-overlay">
+        <div id="error-dialog" class="dialog error-dialog">
+            <div class="dialog-header red error-dialog-header"></div>
+            <div class="dialog-content horizontal error-dialog-content">
+                <i class="material-icons dialog-icon red error-icon">warning</i>
+                <div class="dialog-text error-dialog-text">
+                    <h3>Error</h3>
+                    <p id="error-dialog-message"></p>
+                </div>
+            </div>
+            <div class="dialog-buttons right-align error-dialog-buttons">
+                <button id="error-dialog-ok-button" class="dialog-button error-dialog-button">Okay</button>
+            </div>
+        </div>
+    </div>
+
+
+     <div id="warning-dialog-overlay" class="dialog-overlay warning-dialog-overlay">
+        <div id="warning-dialog" class="dialog warning-dialog">
+            <div class="dialog-header yellow warning-dialog-header"></div>
+            <div class="dialog-content horizontal warning-dialog-content">
+                <i class="material-icons dialog-icon yellow warning-icon">warning</i>
+                <div class="dialog-text warning-dialog-text">
+                    <h3>Warning</h3>
+                    <p id="warning-dialog-message"></p> </div>
+            </div>
+            <div class="dialog-buttons right-align warning-dialog-buttons">
+                <button id="warning-dialog-ok-button" class="dialog-button warning-dialog-button">Okay</button>
+            </div>
+        </div>
+    </div>
+
+     <div id="pfp-edit-overlay" class="pfp-edit-overlay">
+         <div class="pfp-edit-dialog">
+             <div class="pfp-edit-header">
+                 <h3 id="pfp-edit-step-title">Edit Profile Picture</h3>
+                 <i class="material-icons pfp-edit-close" id="pfp-edit-close">close</i>
+             </div>
+             <div class="pfp-edit-content">
+                 <p id="pfp-edit-step-description"></p>
+
+                 <div id="pfp-upload-view" class="pfp-edit-view show">
+                     <input type="file" id="pfp-upload-input" accept="image/*">
+                     <button class="pfp-upload-button" id="select-image-button">Select Image File</button>
+                 </div>
+
+                 <div id="pfp-crop-view" class="pfp-edit-view">
+                     <div class="pfp-image-container">
+                         <img id="pfp-image-preview" class="pfp-image-preview" src="#" alt="Image Preview">
+                          <div class="pfp-crop-circle" id="pfp-crop-circle"></div>
+                         </div>
+                     <div class="pfp-actions">
+                         <button class="pfp-action-button tertiary" id="pfp-crop-back">Back</button>
+                         <button class="pfp-action-button secondary" id="pfp-crop-cancel">Cancel</button>
+                         <button class="pfp-action-button primary" id="pfp-crop-confirm">Crop & Continue</button>
+                     </div>
+                 </div>
+
+                  <div id="pfp-confirm-view" class="pfp-edit-view">
+                     <div class="pfp-image-container" style="max-height: 200px; border-radius: 50%; overflow: hidden;">
+                          <img id="pfp-image-final-preview" class="pfp-image-preview" src="#" alt="Final Image Preview">
+                           </div>
+                     <div class="pfp-confirm-checkbox">
+                         <input type="checkbox" id="pfp-confirm-checkbox">
+                         <label for="pfp-confirm-checkbox">I confirm this is the image I want to use.</label>
+                     </div>
+                      <div class="pfp-actions" style="justify-content: space-between;">
+                           <button class="pfp-action-button tertiary" id="pfp-confirm-back">Back</button>
+                           <button class="pfp-action-button primary" id="update-pfp-button" disabled>Update Profile Picture</button>
+                      </div>
+                 </div>
+
+
+             </div>
+         </div>
+     </div>
+
+
+    <script type="module" src="../../../script.js"></script>
+
+     <script type="module">
+         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+         import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+         // Import Realtime Database functions
+         import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+         // Removed Firebase Storage SDK import
+         // import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-storage.js";
+
+
+         // Your web app's Firebase configuration (Paste from your config)
+        const firebaseConfig = {
+          apiKey: "AIzaSyDjI46S2PGPbUsdvQfWXA0EQ6Pd9lpBRCE",
+          authDomain: "toxicstudios-6de44.firebaseapp.com",
+          // Use databaseURL for Realtime Database
+          databaseURL: "https://toxicstudios-6de44-default-rtdb.firebaseio.com",
+          projectId: "toxicstudios-6de44",
+          storageBucket: "toxicstudios-6de44.firebasestorage.app", // Still need this config value even without using Storage SDK directly
+          messagingSenderId: "22447277764",
+          appId: "1:22447277764:web:7635c6bdb024e0d8b6ab91",
+          measurementId: "G-9CBQQD863T"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app); // Get Realtime Database instance
+        // Removed Storage instance get
+        // const storage = getStorage(app); // Get Storage instance
+
+
+         document.addEventListener('DOMContentLoaded', () => {
+             // Profile Info Elements (Left Panel)
+             const profileUsernameSpan = document.getElementById('profile-username');
+             const profileEmailSpan = document.getElementById('profile-email');
+             const profilePasswordPlaceholderInput = document.getElementById('profile-password-placeholder');
+             const toggleProfilePasswordIcon = document.getElementById('toggle-profile-password');
+             const profileUserJoinedSpan = document.getElementById('profile-user-joined');
+             const profileModerationStatusSpan = document.getElementById('profile-moderation-status');
+             const profilePicturePlaceholder = document.getElementById('profile-picture-placeholder'); // Get the clickable placeholder
+
+             // Public Profile Elements (Upper Right Panel)
+             const publicProfileUsernameSpan = document.getElementById('public-profile-username');
+             const myCreationsButton = document.getElementById('my-creations-button');
+             // Get the profile picture placeholder in the public profile section
+             const publicProfilePicturePlaceholder = document.getElementById('public-profile-picture-placeholder');
+
+
+             // Public Bio Elements (Lower Right Panel)
+             const publicProfileUserJoinedSpan = document.getElementById('public-profile-user-joined'); // Added for consistency, though same data as left
+             const profileBioDisplaySpan = document.getElementById('profile-bio-display');
+             const updateBioButton = document.getElementById('update-bio-button');
+
+
+             // Profile Verification Dialog Elements (Password)
+            const profileVerificationOverlay = document.getElementById('profile-verification-overlay');
+            const profileVerificationDialog = document.getElementById('profile-verification-dialog');
+            const profileGeneratedCodeDisplay = document.getElementById('profile-generated-code-display');
+            const profileVerificationCodeInput = document.getElementById('profile-verification-code-input');
+            const profileVerificationErrorMessageDiv = document.getElementById('profile-verification-error-message');
+            const cancelProfileVerificationButton = document.getElementById('cancel-profile-verification');
+            const verifyProfileCodeButton = document.getElementById('verify-profile-code-button');
+
+            // Error Dialog Elements (reused from other pages)
+            const errorDialogOverlay = document.getElementById('error-dialog-overlay');
+            const errorDialogMessage = document.getElementById('error-dialog-message');
+            const errorDialogOkButton = document.getElementById('error-dialog-ok-button');
+
+            // Warning Dialog Elements (New - reused from signup)
+            const warningDialogOverlay = document.getElementById('warning-dialog-overlay');
+            const warningDialogMessage = document.getElementById('warning-dialog-message');
+            const warningDialogOkButton = document.getElementById('warning-dialog-ok-button');
+
+            // Profile Picture Edit Dialog Elements
+            const pfpEditOverlay = document.getElementById('pfp-edit-overlay');
+            const pfpEditDialog = document.querySelector('#pfp-edit-overlay .pfp-edit-dialog'); // Select the dialog within the overlay
+            const pfpEditCloseButton = document.getElementById('pfp-edit-close');
+             const pfpEditStepTitle = document.getElementById('pfp-edit-step-title');
+             const pfpEditStepDescription = document.getElementById('pfp-edit-step-description');
+
+            // PFP Edit Views
+            const pfpUploadView = document.getElementById('pfp-upload-view');
+            const pfpCropView = document.getElementById('pfp-crop-view');
+            const pfpConfirmView = document.getElementById('pfp-confirm-view');
+
+            // PFP Upload View Elements
+            const pfpUploadInput = document.getElementById('pfp-upload-input');
+            const selectImageButton = document.getElementById('select-image-button');
+
+             // PFP Crop View Elements
+             const pfpImageContainer = document.querySelector('#pfp-crop-view .pfp-image-container');
+            const pfpImagePreview = document.getElementById('pfp-image-preview');
+            const pfpCropCircle = document.getElementById('pfp-crop-circle'); // The movable circle
+            const pfpCropBackButton = document.getElementById('pfp-crop-back'); // Back button on crop view
+            const pfpCropCancelButton = document.getElementById('pfp-crop-cancel');
+            const pfpCropConfirmButton = document.getElementById('pfp-crop-confirm');
+
+             // PFP Confirm View Elements
+             const pfpImageFinalPreview = document.getElementById('pfp-image-final-preview');
+             const pfpConfirmCheckbox = document.getElementById('pfp-confirm-checkbox');
+             const updatePfpButton = document.getElementById('update-pfp-button');
+              const pfpConfirmBackButton = document.getElementById('pfp-confirm-back'); // Back button on confirm view
+
+
+             let generatedProfileVerificationCode = null;
+             let selectedFile = null; // To store the selected image file before upload
+             let finalImageDataUrl = null; // To store the Data URL of the final image for saving
+
+
+            // Variables for dragging the crop circle
+            let isDragging = false;
+            let offsetX, offsetY;
+
+
+            // Function to generate a random 5-character code (letters and numbers)
+            function generateVerificationCode(length = 5) {
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                const charactersLength = characters.length;
+                for (let i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+                return result;
+            }
+
+            // Function to hide all dialogs (Profile page specific)
+            function hideAllProfileDialogs() {
+                 if (profileVerificationOverlay) profileVerificationOverlay.classList.remove('show');
+                 if (errorDialogOverlay) errorDialogOverlay.classList.remove('show');
+                 if (warningDialogOverlay) warningDialogOverlay.classList.remove('show');
+                 hidePfpEditDialog(); // Also hide the PFP edit dialog
+             }
+
+
+             // Function to show the error dialog (reused)
+             function showErrorDialog(message) {
+                 hideAllProfileDialogs();
+
+                if (errorDialogOverlay && errorDialogMessage) {
+                     errorDialogMessage.textContent = message;
+                    errorDialogOverlay.classList.add('show');
+                }
+             }
+
+             // Function to hide the error dialog (reused)
+             function hideErrorDialog() {
+                 if (errorDialogOverlay) {
+                    errorDialogOverlay.classList.remove('show');
+                 }
+             }
+
+             // Function to show the warning dialog (New - reused from signup)
+             function showWarningDialog(message) {
+                 hideAllProfileDialogs();
+
+                 if (warningDialogOverlay && warningDialogMessage) {
+                     warningDialogMessage.textContent = message;
+                     warningDialogOverlay.classList.add('show');
+                 }
+             }
+
+             // Function to hide the warning dialog (New - reused from signup)
+             function hideWarningDialog() {
+                 if (warningDialogOverlay) {
+                     warningDialogOverlay.classList.remove('show');
+                 }
+             }
+
+
+            // Function to show Profile Verification Dialog (Code Generator)
+            function showProfileVerificationDialog(code) {
+                 hideAllProfileDialogs();
+                 if (profileVerificationOverlay) {
+                     profileGeneratedCodeDisplay.textContent = code;
+                     profileVerificationCodeInput.value = '';
+                     profileVerificationErrorMessageDiv.style.display = 'none';
+                    profileVerificationOverlay.classList.add('show');
+                 }
+            }
+
+             // Function to hide Profile Verification Dialog
+            function hideProfileVerificationDialog() {
+                 if (profileVerificationOverlay) {
+                    profileVerificationOverlay.classList.remove('show');
+                 }
+            }
+
+             // Function to show the PFP Edit Dialog and set initial view
+             function showPfpEditDialog() {
+                 hideAllProfileDialogs(); // Hide other dialogs first
+                 showPfpEditView('upload'); // Start with the upload view
+                 pfpEditOverlay.classList.add('show');
+             }
+
+             // Function to hide the PFP Edit Dialog and reset state
+             function hidePfpEditDialog() {
+                 if (pfpEditOverlay) {
+                    pfpEditOverlay.classList.remove('show');
+                     // Reset file input and preview
+                     pfpUploadInput.value = null;
+                     selectedFile = null;
+                     finalImageDataUrl = null; // Clear final image data
+                     pfpImagePreview.src = "#"; // Reset image sources
+                     pfpImageFinalPreview.src = "#";
+                     pfpConfirmCheckbox.checked = false; // Uncheck checkbox
+                     updatePfpButton.disabled = true; // Disable update button
+                      resetCropCirclePosition(); // Reset crop circle position
+                 }
+             }
+
+             // Function to switch views within the PFP edit dialog
+             function showPfpEditView(view) {
+                 // Hide all views
+                 pfpUploadView.classList.remove('show');
+                 pfpCropView.classList.remove('show');
+                 pfpConfirmView.classList.remove('show');
+
+                 // Show the requested view and update step text
+                 switch (view) {
+                     case 'upload':
+                         pfpUploadView.classList.add('show');
+                         pfpEditStepTitle.textContent = 'Edit Profile Picture (Step 1 of 3)';
+                         pfpEditStepDescription.textContent = 'Select an image file to upload.';
+                         break;
+                     case 'crop':
+                         pfpCropView.classList.add('show');
+                         pfpEditStepTitle.textContent = 'Edit Profile Picture (Step 2 of 3)';
+                         pfpEditStepDescription.textContent = 'Move the circle to select the crop area.';
+                         break;
+                     case 'confirm':
+                          pfpConfirmView.classList.add('show');
+                          pfpEditStepTitle.textContent = 'Edit Profile Picture (Step 3 of 3)';
+                          pfpEditStepDescription.textContent = 'Review and confirm the cropped image.';
+                          break;
+                 }
+             }
+
+             // Function to reset crop circle position
+             function resetCropCirclePosition() {
+                  if (pfpCropCircle) {
+                      pfpCropCircle.style.left = '50%';
+                      pfpCropCircle.style.top = '50%';
+                      pfpCropCircle.style.transform = 'translate(-50%, -50%)';
+                  }
+             }
+
+
+            // Event listener for the Okay button in the error dialog (reused)
+            if (errorDialogOkButton) {
+                errorDialogOkButton.addEventListener('click', () => {
+                    hideErrorDialog();
+                });
+            }
+
+             // Event listener for the Okay button in the warning dialog (reused)
+             if (warningDialogOkButton) {
+                 warningDialogOkButton.addEventListener('click', () => {
+                     hideWarningDialog();
+                 });
+             }
+
+
+             // Fetch and display user profile data from Realtime Database and Auth
+             onAuthStateChanged(auth, async (user) => {
+                 if (user) {
+                     // User is signed in
+                     console.log("User is signed in on profile page:", user);
+
+                     // Display Email from Firebase Auth (Left Panel)
+                     if (profileEmailSpan) {
+                         profileEmailSpan.textContent = user.email;
+                     }
+
+                     // Function to update profile picture display elements
+                     const updateProfilePictureDisplays = (photoURL) => {
+                         // Clear existing content (image or icon)
+                          if (profilePicturePlaceholder) profilePicturePlaceholder.innerHTML = '';
+                          if (publicProfilePicturePlaceholder) publicProfilePicturePlaceholder.innerHTML = '';
+
+                         if (photoURL) {
+                             const imgTag = document.createElement('img');
+                             imgTag.src = photoURL;
+                             imgTag.alt = "Profile Picture";
+                              console.log("Displaying profile picture from URL/Data URL:", photoURL);
+
+                              if (profilePicturePlaceholder) profilePicturePlaceholder.appendChild(imgTag.cloneNode(true)); // Clone for left panel
+                              if (publicProfilePicturePlaceholder) publicProfilePicturePlaceholder.appendChild(imgTag.cloneNode(true)); // Clone for public panel
+
+                         } else {
+                             // Use a default icon if no URL/Data URL is available
+                              if (profilePicturePlaceholder) profilePicturePlaceholder.innerHTML = '<i class="material-icons">person</i>';
+                              if (publicProfilePicturePlaceholder) publicProfilePicturePlaceholder.innerHTML = '<i class="material-icons">person</i>';
+                              console.log("No profile picture URL/Data URL, showing default icon.");
+                         }
+                     };
+
+                     // Fetch profile picture URL: prioritize Auth photoURL, then RTDB
+                     if (user.photoURL) {
+                          updateProfilePictureDisplays(user.photoURL);
+                     } else {
+                         // If Auth photoURL is blank, try fetching from RTDB
+                          if (user.uid) {
+                              const userProfileRef = ref(db, `4Mod1/profile/account/${user.uid}`);
+                              try {
+                                   const snapshot = await get(child(userProfileRef, 'profilePictureUrl'));
+                                   if (snapshot.exists()) {
+                                       const rtdbPhotoURL = snapshot.val(); // This could be a Data URL string
+                                       updateProfilePictureDisplays(rtdbPhotoURL);
+                                   } else {
+                                       updateProfilePictureDisplays(null); // No photoURL found anywhere, show default
+                                   }
+                              } catch (dbError) {
+                                   console.error("Error fetching profilePictureUrl from RTDB:", dbError);
+                                   updateProfilePictureDisplays(null); // Error fetching, show default
+                                   // Optionally show a warning dialog about failing to load PFP
+                              }
+                         } else {
+                              updateProfilePictureDisplays(null); // UID not available, cannot fetch from RTDB, show default
+                         }
+                     }
+
+
+                     // Fetch other data from Realtime Database (username, join date, moderation status, bio)
+                     if (user.uid) { // Ensure user has a UID
+                         // Path: /4Mod1/profile/account/{uid}
+                         const userProfileRef = ref(db, `4Mod1/profile/account/${user.uid}`);
+
+                         try {
+                             const snapshot = await get(userProfileRef); // Use get() for a single read
+                             if (snapshot.exists()) {
+                                 const userData = snapshot.val(); // Get the data value
+                                 console.log("User data fetched from Realtime Database:", userData);
+
+                                 // Display Username (Left Panel)
+                                 if (profileUsernameSpan) {
+                                     profileUsernameSpan.textContent = userData.username || '[Username not set]';
+                                 }
+                                  // Display Username (Public Profile Panel)
+                                 if (publicProfileUsernameSpan) {
+                                     publicProfileUsernameSpan.textContent = userData.username || '[Username not set]';
+                                 }
+
+
+                                 // Display User Joined Date (Left Panel)
+                                 if (profileUserJoinedSpan && userData.joinTimestamp) {
+                                     // Realtime Database stores serverTimestamp as a number (milliseconds)
+                                     const joinDate = new Date(userData.joinTimestamp);
+                                     // Format date as "Month Day, Year"
+                                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                                     profileUserJoinedSpan.textContent = joinDate.toLocaleDateString(undefined, options);
+                                 } else if (profileUserJoinedSpan) {
+                                     profileUserJoinedSpan.textContent = '[Join date not available]';
+                                 }
+                                 // Display User Joined Date (Public Bio Panel)
+                                 if (publicProfileUserJoinedSpan && userData.joinTimestamp) {
+                                     const joinDate = new Date(userData.joinTimestamp);
+                                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                                     publicProfileUserJoinedSpan.textContent = joinDate.toLocaleDateString(undefined, options);
+                                 } else if (publicProfileUserJoinedSpan) {
+                                     publicProfileUserJoinedSpan.textContent = '[Join date not available]';
+                                 }
+
+
+                                 // Display Moderation Status (Left Panel)
+                                 if (profileModerationStatusSpan) {
+                                     const status = userData.moderationStatus || 0; // Default to 0 if not set
+                                     let statusText = 'None';
+                                     switch(status) {
+                                         case 1: statusText = 'Warned'; break;
+                                         case 2: statusText = 'Suspended'; break;
+                                         case 3: statusText = 'Banned/Disabled'; break;
+                                         default: statusText = 'None'; // Handle unexpected values
+                                     }
+                                     profileModerationStatusSpan.textContent = statusText;
+                                 }
+
+                                  // Display Bio (Public Bio Panel)
+                                  // Note: Bio is retrieved from RTDB.
+                                 if (profileBioDisplaySpan) {
+                                     profileBioDisplaySpan.textContent = userData.bio || '[Bio not set yet]';
+                                 }
+
+
+                             } else {
+                                 console.warn("No user data found in Realtime Database for UID:", user.uid);
+                                 // Display placeholders indicating data not found in all relevant fields
+                                 if (profileUsernameSpan) profileUsernameSpan.textContent = '[Profile data not found]';
+                                 if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[Profile data not found]';
+                                 if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[Profile data not found]';
+                                 if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[Profile data not found]';
+                                 if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[Profile data not found]';
+                                 if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[Profile data not found]';
+
+                                 showWarningDialog("Your profile data was not found in the database. Please contact support or try signing up again.");
+                             }
+                         } catch (dbError) {
+                             console.error("Error fetching user data from Realtime Database:", dbError);
+                             // Display placeholders indicating error in all relevant fields
+                             if (profileUsernameSpan) profileUsernameSpan.textContent = '[Error loading profile data]';
+                             if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[Error loading profile data]';
+                             if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[Error loading profile data]';
+                             if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[Error loading profile data]';
+                             if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[Error loading profile data]';
+                              if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[Error loading profile data]';
+
+                             showErrorDialog("Failed to load profile data. Please try again later.");
+                         }
+                     } else {
+                         console.error("No user UID available to fetch profile data.");
+                         // Display placeholders indicating error in all relevant fields
+                         if (profileUsernameSpan) profileUsernameSpan.textContent = '[UID not available]';
+                         if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[UID not available]';
+                         if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[UID not available]';
+                         if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[UID not available]';
+                         if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[UID not available]';
+                         if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[UID not available]';
+
+                          showErrorDialog("User authentication error. Please try logging in again.");
+                     }
+
+
+                 } else {
+                     // No user is signed in. Redirect to sign in page.
+                     console.log("No user signed in on profile page. Redirecting.");
+                     window.location.href = '../../signin/index.html'; // Redirect to sign in
+                 }
+             });
+
+
+            // Event listener for the Password Toggle Icon in the Profile section
+            // This triggers a verification step, but does NOT reveal the actual password from the database.
+            if (toggleProfilePasswordIcon) {
+                 toggleProfilePasswordIcon.addEventListener('click', () => {
+                     console.log("Profile password toggle icon clicked. Triggering verification.");
+
+                     // We are NOT getting the password from the database here.
+                     // This verification is a security step before allowing password-related actions (e.g., changing password).
+
+                     generatedProfileVerificationCode = generateVerificationCode();
+                     showProfileVerificationDialog(generatedProfileVerificationCode);
+                 });
+            }
+
+            // Event listener for the Cancel button in the Profile Verification Dialog
+            if (cancelProfileVerificationButton) {
+                 cancelProfileVerificationButton.addEventListener('click', () => {
+                     console.log("Profile password view verification cancelled.");
+                     hideProfileVerificationDialog();
+                     showErrorDialog("Password view verification cancelled.");
+                 });
+            }
+
+             // Event listener for the Verify button in the Profile Verification Dialog
+            if (verifyProfileCodeButton) {
+                 verifyProfileCodeButton.addEventListener('click', () => {
+                     const enteredCode = profileVerificationCodeInput.value.trim().toUpperCase();
+                     profileVerificationErrorMessageDiv.style.display = 'none';
+
+                     if (enteredCode === generatedProfileVerificationCode) {
+                         console.log("Profile password view verification code matched!");
+                         hideProfileVerificationDialog();
+                         // We cannot show the actual password.
+                         showWarningDialog("Verification successful! Note: The password cannot be displayed for security.");
+
+
+                     } else {
+                         console.log("Profile password view verification code mismatch.");
+                         profileVerificationErrorMessageDiv.textContent = "Invalid verification code. Please try again.";
+                         profileVerificationErrorMessageDiv.style.display = 'block';
+                         profileVerificationCodeInput.value = '';
+                     }
+                 });
+            }
+
+             // Event listeners for "Coming Soon" buttons (optional, just logs for now)
+             if (myCreationsButton) {
+                 myCreationsButton.addEventListener('click', () => {
+                     console.log('"My Creations" button clicked (Coming Soon).');
+                      showWarningDialog("My Creations are not available yet. Coming Soon!");
+                 });
+             }
+
+             if (updateBioButton) {
+                 updateBioButton.addEventListener('click', () => {
+                     console.log('"Update Bio" button clicked (Coming Soon).');
+                     // This would ideally open a dialog/form to edit the bio and save it to RTDB
+                     showWarningDialog("Bio editing is not available yet. Coming Soon!");
+                 });
+             }
+
+             // --- Profile Picture Edit Dialog Logic ---
+
+             // Open PFP edit dialog when profile picture placeholder is clicked
+            if (profilePicturePlaceholder) {
+                 profilePicturePlaceholder.addEventListener('click', () => {
+                     console.log("Profile picture placeholder clicked. Opening edit dialog.");
+                     showPfpEditDialog();
+                 });
+            }
+
+             // Close PFP edit dialog
+            if (pfpEditCloseButton) {
+                 pfpEditCloseButton.addEventListener('click', () => {
+                     console.log("PFP edit dialog close button clicked.");
+                     hidePfpEditDialog();
+                 });
+            }
+
+             // Trigger file input when "Select Image File" button is clicked
+            if (selectImageButton && pfpUploadInput) {
+                 selectImageButton.addEventListener('click', () => {
+                     pfpUploadInput.click();
+                 });
+            }
+
+             // Handle file selection (Step 1 to Step 2)
+            if (pfpUploadInput && pfpImagePreview) {
+                 pfpUploadInput.addEventListener('change', (event) => {
+                     selectedFile = event.target.files[0];
+                     if (selectedFile) {
+                         const reader = new FileReader();
+                         reader.onload = (e) => {
+                             pfpImagePreview.src = e.target.result;
+                             console.log("File selected. Showing crop view.");
+                             showPfpEditView('crop'); // Move to Step 2: Crop View
+                             // Reset crop circle to center on image load
+                             resetCropCirclePosition();
+                         };
+                         reader.readAsDataURL(selectedFile);
+                     }
+                 });
+            }
+
+            // --- Crop Circle Dragging Logic (Simulation) ---
+            if (pfpCropCircle && pfpImageContainer) {
+                 pfpCropCircle.addEventListener('mousedown', (e) => {
+                     isDragging = true;
+                     // Calculate initial offset from mouse to the circle's top-left corner
+                     const rect = pfpCropCircle.getBoundingClientRect();
+                     offsetX = e.clientX - rect.left;
+                     offsetY = e.clientY - rect.top;
+                     pfpCropCircle.style.cursor = 'grabbing';
+                 });
+
+                 document.addEventListener('mousemove', (e) => {
+                     if (!isDragging) return;
+
+                     e.preventDefault(); // Prevent default drag behavior
+
+                     // Get container position and size
+                     const containerRect = pfpImageContainer.getBoundingClientRect();
+                     const circleRect = pfpCropCircle.getBoundingClientRect();
+
+                     let newLeft = e.clientX - offsetX - containerRect.left;
+                     let newTop = e.clientY - offsetY - containerRect.top;
+
+                     // Constrain dragging within the image container bounds
+                     const minLeft = 0;
+                     const maxLeft = containerRect.width - circleRect.width;
+                     const minTop = 0;
+                     const maxTop = containerRect.height - circleRect.height;
+
+                     newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
+                     newTop = Math.max(minTop, Math.min(newTop, maxTop));
+
+
+                     // Update circle position using 'left' and 'top' relative to the container
+                     // Remove the translate transform when using pixel values
+                     pfpCropCircle.style.left = `${newLeft}px`;
+                     pfpCropCircle.style.top = `${newTop}px`;
+                      pfpCropCircle.style.transform = 'none'; // Remove transform when dragging
+                 });
+
+                 document.addEventListener('mouseup', () => {
+                     if (isDragging) {
+                         isDragging = false;
+                         pfpCropCircle.style.cursor = 'grab';
+                         console.log("Crop circle dragging ended.");
+                         // You would typically capture the final position here for actual cropping
+                     }
+                 });
+
+                 // Add touch event listeners for mobile
+                 pfpCropCircle.addEventListener('touchstart', (e) => {
+                      isDragging = true;
+                      const touch = e.touches[0];
+                      const rect = pfpCropCircle.getBoundingClientRect();
+                      offsetX = touch.clientX - rect.left;
+                      offsetY = touch.clientY - rect.top;
+                      pfpCropCircle.style.cursor = 'grabbing';
+                 });
+
+                 document.addEventListener('touchmove', (e) => {
+                      if (!isDragging) return;
+
+                      e.preventDefault(); // Prevent default scrolling
+
+                      const touch = e.touches[0];
+                      const containerRect = pfpImageContainer.getBoundingClientRect();
+                      const circleRect = pfpCropCircle.getBoundingClientRect();
+
+                      let newLeft = touch.clientX - offsetX - containerRect.left;
+                      let newTop = touch.clientY - offsetY - containerRect.top;
+
+                      const minLeft = 0;
+                      const maxLeft = containerRect.width - circleRect.width;
+                      const minTop = 0;
+                      const maxTop = containerRect.height - circleRect.height;
+
+                      newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
+                      newTop = Math.max(minTop, Math.min(newTop, maxTop));
+
+                      pfpCropCircle.style.left = `${newLeft}px`;
+                      pfpCropCircle.style.top = `${newTop}px`;
+                      pfpCropCircle.style.transform = 'none';
+                 });
+
+                 document.addEventListener('touchend', () => {
+                      if (isDragging) {
+                         isDragging = false;
+                         pfpCropCircle.style.cursor = 'grab';
+                         console.log("Crop circle dragging ended (touch).");
+                         // Capture final position
+                      }
+                 });
+            }
+             // --- End Crop Circle Dragging Logic ---
+
+
+             // Handle Back in Crop View (Step 2 to Step 1)
+            if (pfpCropBackButton) {
+                 pfpCropBackButton.addEventListener('click', () => {
+                     console.log("Crop view Back button clicked. Going to upload view.");
+                     showPfpEditView('upload'); // Go back to Step 1
+                     resetCropCirclePosition(); // Reset circle position when going back
+                     pfpUploadInput.value = null; // Clear the file input
+                 });
+            }
+
+
+             // Handle Cancel in Crop View
+            if (pfpCropCancelButton) {
+                 pfpCropCancelButton.addEventListener('click', () => {
+                     console.log("Crop view Cancel button clicked. Closing dialog.");
+                     hidePfpEditDialog(); // Close the entire dialog
+                 });
+            }
+
+             // Handle Confirm in Crop View (Placeholder for actual cropping) (Step 2 to Step 3)
+            if (pfpCropConfirmButton) {
+                 pfpCropConfirmButton.addEventListener('click', () => {
+                     console.log("Crop confirmed (placeholder). Showing confirm view.");
+
+                     // *** Placeholder for actual image cropping logic ***
+                     // Here you would take the image from pfpImagePreview and crop it
+                     // based on the position and size of pfpCropCircle.
+                     // The output should be a cropped image Data URL or Blob.
+
+                     // For THIS implementation (no Storage), we will simulate the "cropped"
+                     // image by just using the current preview image's Data URL.
+                     // In a real app with cropping, you'd generate the Data URL of the cropped part.
+                     const croppedImageDataUrl = pfpImagePreview.src; // SIMULATION: Use the full image data URL
+
+                     finalImageDataUrl = croppedImageDataUrl; // Store the data URL for saving
+                     pfpImageFinalPreview.src = finalImageDataUrl; // Show the final preview
+
+                     showPfpEditView('confirm'); // Move to Step 3: Confirmation view
+                 });
+            }
+
+             // Handle Back in Confirm View (Step 3 to Step 2)
+             if (pfpConfirmBackButton) {
+                  pfpConfirmBackButton.addEventListener('click', () => {
+                      console.log("Confirm view Back button clicked. Going back to crop view.");
+                      showPfpEditView('crop'); // Go back to Step 2
+                       pfpConfirmCheckbox.checked = false; // Uncheck checkbox
+                       updatePfpButton.disabled = true; // Disable button
+                       finalImageDataUrl = null; // Clear final image data
+                  });
+             }
+
+
+             // Handle Checkbox change in Confirm View
+             if (pfpConfirmCheckbox && updatePfpButton) {
+                 pfpConfirmCheckbox.addEventListener('change', () => {
+                     updatePfpButton.disabled = !pfpConfirmCheckbox.checked;
+                 });
+             }
+
+             // Handle Update Profile Picture button click (Saving Data URL to RTDB)
+            if (updatePfpButton) {
+                 updatePfpButton.addEventListener('click', async () => {
+                     if (!finalImageDataUrl || !pfpConfirmCheckbox.checked) {
+                         showErrorDialog("Image data or confirmation missing.");
+                         return;
+                     }
+
+                     console.log("Update Profile Picture button clicked. Attempting to save Data URL to Realtime Database.");
+
+                     const user = auth.currentUser;
+                     if (user) {
+                         const userId = user.uid;
+                         const userProfileRef = ref(db, `4Mod1/profile/account/${userId}`);
+
+                         // *** WARNING: Storing large Data URLs in Realtime Database is NOT recommended
+                         // for performance and cost reasons on the free tier.
+                         // This is a workaround because Storage is not available.
+                         // For production, consider Firebase Storage or another image hosting solution.
+                         console.warn("WARNING: Storing profile picture as Data URL in Realtime Database. This is NOT recommended for production due to size and performance limitations on the free tier.");
+
+
+                          const updates = {
+                                 profilePictureUrl: finalImageDataUrl // Save the Data URL string in RTDB
+                             };
+
+                             try {
+                                 await update(userProfileRef, updates);
+                                 console.log("Realtime Database profilePictureUrl updated with Data URL.");
+
+                                  // Also attempt to update Firebase Auth's photoURL field if possible
+                                  // This might not display the Data URL correctly in all Firebase UIs,
+                                  // but it's good practice to keep it in sync if Firebase Auth is the primary source.
+                                  try {
+                                       await updateProfile(user, { photoURL: finalImageDataUrl });
+                                       console.log("Firebase Auth photoURL updated with Data URL.");
+                                  } catch (authUpdateError) {
+                                       console.error("Error updating Firebase Auth photoURL:", authUpdateError);
+                                      // This error might occur if Auth photoURL field has restrictions on Data URLs.
+                                       showWarningDialog("Profile picture saved to database, but failed to update authentication record.");
+                                  }
+
+
+                                 showWarningDialog("Profile picture updated successfully (saved as Data URL in DB)! Reloading page."); // Use Warning for visibility
+
+
+                                 // Reload the page to show the updated profile picture
+                                 setTimeout(() => {
+                                     window.location.reload();
+                                 }, 2000); // Reload after 2 seconds
+
+                             } catch (dbUpdateError) {
+                                 console.error("Error updating Realtime Database profilePictureUrl:", dbUpdateError);
+                                 showErrorDialog("Failed to save profile picture Data URL to database.");
+                             }
+
+
+                     } else {
+                         console.error("No user signed in to update profile picture.");
+                         showErrorDialog("You must be signed in to update your profile picture.");
+                         hidePfpEditDialog(); // Close dialog if user somehow got here without being signed in
+                     }
+                 });
+            }
+
+
+         });
+     </script>
+
+</body>
+</html>

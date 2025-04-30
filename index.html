@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>4Mod1 - Publish Your Apps & Games</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <script
+      type="module"
+      src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"
+    ></script>
+    <script
+      type="module"
+      src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"
+    ></script>
+  </head>
+  <body class="logged-out">
+    <header id="header">
+      <div class="header-container">
+        <div class="header-left">
+          <a href="index.html">
+            <img
+              src="assets/logo.png"
+              alt="4Mod1 Logo"
+              class="logo"
+              draggable="false"
+            />
+          </a>
+          <nav>
+            <ul class="nav-menu">
+              <li class="dropdown">
+                <span class="explore-text"
+                  ><span class="explore-label">Explore</span>
+                  <i class="material-icons arrow-icon">arrow_drop_down</i></span
+                >
+                <ul class="dropdown-content">
+                  <li><a href="index.html">Home</a></li>
+                  <li><a href="#">Games</a></li>
+                  <li><a href="#">Apps</a></li>
+                  <li>
+                    <a href="#"><strong>Mod</strong> (BETA)</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <div class="header-right">
+          <a href="#" class="admin-button">Administrator</a>
+          <a href="pages/signin/index.html" class="sign-in">Sign In</a>
+
+          <div class="user-display dropdown">
+            <span class="user-email-label"></span>
+            <i class="material-icons arrow-icon">arrow_drop_down</i>
+            <ul class="dropdown-content user-dropdown-content">
+              <li><a href="pages/account/profile/index.html">Profile</a></li>
+              <li><a href="#">Settings</a></li>
+              <li><a href="#" id="logout-link">Log Out</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <h2>Welcome to 4Mod1</h2>
+        <p>
+          A place for developers to publish their creations and for users to
+          find exciting new apps and games.
+        </p>
+        <a href="#publish" class="cta-button">Publish Your Project</a>
+        <a href="#browse" class="cta-button">Browse Apps & Games</a>
+      </section>
+
+      <section id="publish" class="content-section">
+        <h2>Publish Your Project</h2>
+        <p>
+          Information on how to submit your app or game will go here. This could
+          include guidelines, submission forms, etc.
+        </p>
+        <p>Stay tuned for details!</p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+      </section>
+
+      <section id="browse" class="content-section">
+        <h2>Browse Apps & Games</h2>
+        <p>
+          This section will feature listed apps and games. Categories, search
+          filters, and individual listings will be displayed here.
+        </p>
+        <p>Coming soon!</p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+      </section>
+    </main>
+
+    <footer id="footer">
+      <p>&copy; 2025 4Mod1. All rights reserved.</p>
+    </footer>
+
+    <div id="confirm-dialog-overlay" class="dialog-overlay">
+      <div id="logout-confirm-dialog" class="confirm-dialog">
+        <div class="dialog-header"></div>
+        <div class="dialog-content">
+          <i class="material-icons dialog-icon">warning</i>
+          <div class="dialog-text">
+            <h3>Log Out</h3>
+            <p>Are you sure you want to log out?</p>
+          </div>
+        </div>
+        <div class="dialog-buttons">
+          <button id="cancel-logout" class="dialog-button cancel-button">
+            Cancel
+          </button>
+          <button id="confirm-logout" class="dialog-button logout-button">
+            Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

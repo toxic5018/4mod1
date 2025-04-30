@@ -174,7 +174,7 @@
              font-size: 1em;
              box-sizing: border-box;
              min-height: 80px; /* Give some initial height */
-             resize: vertical; /* Allow vertical resizing */
+             resize: none; /* Prevent resizing */
               user-select: auto !important;
             -webkit-user-select: auto !important;
             -moz-user-select: auto !important;
@@ -230,20 +230,32 @@
              width: 100%;
              padding: 10px;
              margin-top: 15px;
-             background-color: #ddd; /* Default state for 'coming soon' */
-             color: #555;
+             /* Removed default state for 'coming soon' */
+             background-color: #4a90e2; /* Example blue for active buttons */
+             color: #fff;
              border: none;
              border-radius: 4px;
-             cursor: not-allowed; /* Indicate it's not active */
+             cursor: pointer;
              font-size: 0.9em;
              text-align: center;
-             transition: background-color 0.3s ease;
+             transition: background-color 0.3s ease, opacity 0.3s ease;
+         }
+         .profile-action-button:hover {
+             background-color: #357abd;
          }
 
           /* Specific styling for the update bio button if needed */
           #update-bio-button {
             /* You can add specific styles here if different from default */
           }
+
+          /* Styling for 'Coming Soon' state on buttons */
+           .profile-action-button.coming-soon {
+              background-color: #ddd;
+              color: #555;
+              cursor: not-allowed;
+           }
+
 
          /* Placeholder styling for blank right panels */
          .blank-placeholder {
@@ -304,6 +316,7 @@
          .dialog-header.green { background-color: #5cb85c; } /* Green header */
          .dialog-header.red { background-color: #e74c3c; } /* Red header */
          .dialog-header.yellow { background-color: #f1c40f; } /* Yellow header */
+         .dialog-header.blue { background-color: #3498db; } /* Blue header for bio edit */
 
 
          /* Styles for the main content area within a dialog */
@@ -323,6 +336,7 @@
          .dialog-icon.green { color: #5cb85c; } /* Green icon */
          .dialog-icon.red { color: #e74c3c; } /* Red icon */
          .dialog-icon.yellow { color: #f1c40f; } /* Yellow icon */
+         .dialog-icon.blue { color: #3498db; } /* Blue icon for bio edit */
 
 
          /* Styles for text content within dialogs */
@@ -390,6 +404,18 @@
           }
           .dialog-button.back-button:hover {
              background-color: #7f8c8d;
+          }
+
+         .dialog-button.submit-button {
+             background-color: #3498db; /* Blue */
+             color: #fff;
+         }
+         .dialog-button.submit-button:hover {
+             background-color: #2980b9;
+         }
+          .dialog-button.submit-button:disabled {
+             background-color: #ccc;
+             cursor: not-allowed;
           }
 
 
@@ -685,6 +711,127 @@
              display: flex;
          }
 
+
+         /* --- Edit Bio Dialog Styles --- */
+         .edit-bio-overlay {
+              position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+             background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
+             align-items: center; z-index: 3000; visibility: hidden; opacity: 0;
+             transition: opacity 0.3s ease, visibility 0.3s ease;
+         }
+          .edit-bio-overlay.show { visibility: visible; opacity: 1; }
+
+         .edit-bio-dialog {
+             background-color: #fff; border-radius: 8px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+             max-width: 500px; width: 90%; overflow: hidden; transform: scale(0.95);
+             transition: transform 0.3s ease;
+             position: relative;
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             padding: 20px;
+         }
+         .edit-bio-overlay.show .edit-bio-dialog { transform: scale(1); }
+
+          .edit-bio-header {
+             width: 100%;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             padding-bottom: 10px;
+             margin-bottom: 10px;
+             border-bottom: 1px solid #eee;
+          }
+
+          .edit-bio-header h3 {
+              margin: 0;
+              color: #333;
+          }
+
+          .edit-bio-close {
+              font-size: 24px;
+              color: #999;
+              cursor: pointer;
+              transition: color 0.3s ease;
+          }
+          .edit-bio-close:hover {
+              color: #555;
+          }
+
+          .edit-bio-content {
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start; /* Align items to the start */
+          }
+
+          .edit-bio-content label {
+              font-weight: bold;
+              margin-bottom: 8px;
+              color: #555;
+              font-size: 0.9em;
+          }
+
+          .edit-bio-content textarea {
+              width: 100%; /* Take full width */
+              padding: 10px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              box-sizing: border-box; /* Include padding and border in width */
+              font-size: 1em;
+              min-height: 120px; /* Set a fixed height */
+              max-height: 120px; /* Make it non-resizable vertically */
+              resize: none; /* Prevent manual resizing */
+               user-select: auto !important;
+             -webkit-user-select: auto !important;
+             -moz-user-select: auto !important;
+             -ms-user-select: auto !important;
+          }
+
+          .character-counter {
+              width: 100%;
+              text-align: right;
+              font-size: 0.8em;
+              color: #777;
+              margin-top: 5px;
+          }
+
+          .edit-bio-actions {
+              width: 100%;
+              display: flex;
+              justify-content: flex-end; /* Align buttons to the right */
+              gap: 10px;
+              margin-top: 20px;
+          }
+
+          .edit-bio-actions .dialog-button {
+              padding: 8px 15px;
+              border-radius: 4px;
+              font-size: 0.9em;
+          }
+
+          .edit-bio-actions .submit-button {
+               background-color: #3498db; /* Blue */
+               color: #fff;
+           }
+           .edit-bio-actions .submit-button:hover {
+               background-color: #2980b9;
+           }
+            .edit-bio-actions .submit-button:disabled {
+               background-color: #ccc;
+               cursor: not-allowed;
+            }
+
+           .edit-bio-actions .cancel-button {
+               background-color: transparent;
+               color: #555;
+               border: 1px solid #ccc;
+           }
+           .edit-bio-actions .cancel-button:hover {
+               background-color: #f4f4f4;
+           }
+
+
     </style>
 </head>
 <body>
@@ -715,7 +862,7 @@
                 <a href="../../signin/index.html" class="sign-in">Sign In</a>
 
                 <div class="user-display dropdown">
-                     <span class="user-email-label"></span> <i class="material-icons arrow-icon">arrow_drop_down</i>
+                     <span class="user-username-label"></span> <i class="material-icons arrow-icon">arrow_drop_down</i>
                      <ul class="dropdown-content user-dropdown-content">
                         <li><a href="index.html">Profile</a></li>
                         <li><a href="#">Settings</a></li>
@@ -774,7 +921,7 @@
                          <span id="public-profile-username">[Loading Username...]</span>
                      </div>
 
-                    <button class="profile-action-button" id="my-creations-button">My Creations (Coming Soon)</button>
+                    <button class="profile-action-button coming-soon" id="my-creations-button">My Creations (Coming Soon)</button>
 
                 </div>
 
@@ -791,7 +938,7 @@
                      </div>
 
 
-                    <button class="profile-action-button" id="update-bio-button">Update Bio (Coming Soon)</button>
+                    <button class="profile-action-button" id="update-bio-button">Update Bio</button>
 
                 </div>
             </div>
@@ -916,12 +1063,28 @@
          </div>
      </div>
 
+    <div id="edit-bio-overlay" class="edit-bio-overlay">
+        <div class="edit-bio-dialog">
+            <div class="edit-bio-header">
+                <h3>Edit Bio</h3>
+                <i class="material-icons edit-bio-close" id="edit-bio-close">close</i>
+            </div>
+            <div class="edit-bio-content">
+                <label for="bio-textarea">Description (Max 5000 characters):</label>
+                <textarea id="bio-textarea" maxlength="5000"></textarea>
+                <div class="character-counter" id="bio-char-counter">0/5000</div>
+            </div>
+            <div class="edit-bio-actions">
+                <button class="dialog-button cancel-button" id="bio-cancel-button">Cancel</button>
+                <button class="dialog-button submit-button" id="bio-submit-button">Submit</button>
+            </div>
+        </div>
+    </div>
 
-    <script type="module" src="../../../script.js"></script>
 
-     <script type="module">
+    <script type="module">
          import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-         import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+         import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
          // Import Realtime Database functions
          import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
          // Removed Firebase Storage SDK import
@@ -950,6 +1113,17 @@
 
 
          document.addEventListener('DOMContentLoaded', () => {
+             // Header Elements
+             const signInLink = document.querySelector('.header-right .sign-in');
+             const userDisplay = document.querySelector('.header-right .user-display');
+             const userUsernameLabel = document.querySelector('.header-right .user-username-label'); // Renamed from user-email-label
+             const logoutLink = document.getElementById('logout-link');
+             const confirmDialogOverlay = document.getElementById('confirm-dialog-overlay');
+             const cancelLogoutButton = document.getElementById('cancel-logout');
+             const confirmLogoutButton = document.getElementById('confirm-logout');
+              const adminButton = document.querySelector('.header-right .admin-button'); // Added admin button ref
+
+
              // Profile Info Elements (Left Panel)
              const profileUsernameSpan = document.getElementById('profile-username');
              const profileEmailSpan = document.getElementById('profile-email');
@@ -972,7 +1146,7 @@
              const updateBioButton = document.getElementById('update-bio-button');
 
 
-             // Profile Verification Dialog Elements (Password)
+             // Verification Dialog Elements (Password)
             const profileVerificationOverlay = document.getElementById('profile-verification-overlay');
             const profileVerificationDialog = document.getElementById('profile-verification-dialog');
             const profileGeneratedCodeDisplay = document.getElementById('profile-generated-code-display');
@@ -1022,14 +1196,19 @@
               const pfpConfirmBackButton = document.getElementById('pfp-confirm-back'); // Back button on confirm view
 
 
+            // Edit Bio Dialog Elements
+            const editBioOverlay = document.getElementById('edit-bio-overlay');
+            const editBioDialog = document.querySelector('#edit-bio-overlay .edit-bio-dialog');
+            const editBioCloseButton = document.getElementById('edit-bio-close');
+            const bioTextarea = document.getElementById('bio-textarea');
+            const bioCharCounter = document.getElementById('bio-char-counter');
+            const bioCancelButton = document.getElementById('bio-cancel-button');
+            const bioSubmitButton = document.getElementById('bio-submit-button');
+
              let generatedProfileVerificationCode = null;
              let selectedFile = null; // To store the selected image file before upload
              let finalImageDataUrl = null; // To store the Data URL of the final image for saving
-
-
-            // Variables for dragging the crop circle
-            let isDragging = false;
-            let offsetX, offsetY;
+             const bioCharLimit = 5000; // Max characters for bio
 
 
             // Function to generate a random 5-character code (letters and numbers)
@@ -1049,6 +1228,7 @@
                  if (errorDialogOverlay) errorDialogOverlay.classList.remove('show');
                  if (warningDialogOverlay) warningDialogOverlay.classList.remove('show');
                  hidePfpEditDialog(); // Also hide the PFP edit dialog
+                 hideEditBioDialog(); // Also hide the Edit Bio dialog
              }
 
 
@@ -1164,6 +1344,31 @@
                   }
              }
 
+            // Function to show the Edit Bio Dialog
+            function showEditBioDialog(currentBio) {
+                hideAllProfileDialogs(); // Hide other dialogs
+                if (editBioOverlay && bioTextarea && bioCharCounter) {
+                    bioTextarea.value = currentBio || ''; // Populate with current bio
+                    updateBioCharCounter(); // Update character count initially
+                    editBioOverlay.classList.add('show');
+                }
+            }
+
+            // Function to hide the Edit Bio Dialog
+            function hideEditBioDialog() {
+                if (editBioOverlay) {
+                    editBioOverlay.classList.remove('show');
+                }
+            }
+
+            // Function to update bio character counter
+            function updateBioCharCounter() {
+                 if (bioTextarea && bioCharCounter) {
+                     const currentLength = bioTextarea.value.length;
+                     bioCharCounter.textContent = `${currentLength}/${bioCharLimit}`;
+                 }
+            }
+
 
             // Event listener for the Okay button in the error dialog (reused)
             if (errorDialogOkButton) {
@@ -1180,171 +1385,191 @@
              }
 
 
-             // Fetch and display user profile data from Realtime Database and Auth
-             onAuthStateChanged(auth, async (user) => {
+             // --- Header Logic (Moved from script.js) ---
+
+             // Function to update header UI based on auth state
+             const updateHeaderUI = (user, username) => {
                  if (user) {
                      // User is signed in
-                     console.log("User is signed in on profile page:", user);
-
-                     // Display Email from Firebase Auth (Left Panel)
-                     if (profileEmailSpan) {
-                         profileEmailSpan.textContent = user.email;
-                     }
-
-                     // Function to update profile picture display elements
-                     const updateProfilePictureDisplays = (photoURL) => {
-                         // Clear existing content (image or icon)
-                          if (profilePicturePlaceholder) profilePicturePlaceholder.innerHTML = '';
-                          if (publicProfilePicturePlaceholder) publicProfilePicturePlaceholder.innerHTML = '';
-
-                         if (photoURL) {
-                             const imgTag = document.createElement('img');
-                             imgTag.src = photoURL;
-                             imgTag.alt = "Profile Picture";
-                              console.log("Displaying profile picture from URL/Data URL:", photoURL);
-
-                              if (profilePicturePlaceholder) profilePicturePlaceholder.appendChild(imgTag.cloneNode(true)); // Clone for left panel
-                              if (publicProfilePicturePlaceholder) publicProfilePicturePlaceholder.appendChild(imgTag.cloneNode(true)); // Clone for public panel
-
-                         } else {
-                             // Use a default icon if no URL/Data URL is available
-                              if (profilePicturePlaceholder) profilePicturePlaceholder.innerHTML = '<i class="material-icons">person</i>';
-                              if (publicProfilePicturePlaceholder) publicProfilePicturePlaceholder.innerHTML = '<i class="material-icons">person</i>';
-                              console.log("No profile picture URL/Data URL, showing default icon.");
-                         }
-                     };
-
-                     // Fetch profile picture URL: prioritize Auth photoURL, then RTDB
-                     if (user.photoURL) {
-                          updateProfilePictureDisplays(user.photoURL);
-                     } else {
-                         // If Auth photoURL is blank, try fetching from RTDB
-                          if (user.uid) {
-                              const userProfileRef = ref(db, `4Mod1/profile/account/${user.uid}`);
-                              try {
-                                   const snapshot = await get(child(userProfileRef, 'profilePictureUrl'));
-                                   if (snapshot.exists()) {
-                                       const rtdbPhotoURL = snapshot.val(); // This could be a Data URL string
-                                       updateProfilePictureDisplays(rtdbPhotoURL);
-                                   } else {
-                                       updateProfilePictureDisplays(null); // No photoURL found anywhere, show default
-                                   }
-                              } catch (dbError) {
-                                   console.error("Error fetching profilePictureUrl from RTDB:", dbError);
-                                   updateProfilePictureDisplays(null); // Error fetching, show default
-                                   // Optionally show a warning dialog about failing to load PFP
-                              }
-                         } else {
-                              updateProfilePictureDisplays(null); // UID not available, cannot fetch from RTDB, show default
-                         }
-                     }
-
-
-                     // Fetch other data from Realtime Database (username, join date, moderation status, bio)
-                     if (user.uid) { // Ensure user has a UID
-                         // Path: /4Mod1/profile/account/{uid}
-                         const userProfileRef = ref(db, `4Mod1/profile/account/${user.uid}`);
-
-                         try {
-                             const snapshot = await get(userProfileRef); // Use get() for a single read
-                             if (snapshot.exists()) {
-                                 const userData = snapshot.val(); // Get the data value
-                                 console.log("User data fetched from Realtime Database:", userData);
-
-                                 // Display Username (Left Panel)
-                                 if (profileUsernameSpan) {
-                                     profileUsernameSpan.textContent = userData.username || '[Username not set]';
-                                 }
-                                  // Display Username (Public Profile Panel)
-                                 if (publicProfileUsernameSpan) {
-                                     publicProfileUsernameSpan.textContent = userData.username || '[Username not set]';
-                                 }
-
-
-                                 // Display User Joined Date (Left Panel)
-                                 if (profileUserJoinedSpan && userData.joinTimestamp) {
-                                     // Realtime Database stores serverTimestamp as a number (milliseconds)
-                                     const joinDate = new Date(userData.joinTimestamp);
-                                     // Format date as "Month Day, Year"
-                                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                                     profileUserJoinedSpan.textContent = joinDate.toLocaleDateString(undefined, options);
-                                 } else if (profileUserJoinedSpan) {
-                                     profileUserJoinedSpan.textContent = '[Join date not available]';
-                                 }
-                                 // Display User Joined Date (Public Bio Panel)
-                                 if (publicProfileUserJoinedSpan && userData.joinTimestamp) {
-                                     const joinDate = new Date(userData.joinTimestamp);
-                                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                                     publicProfileUserJoinedSpan.textContent = joinDate.toLocaleDateString(undefined, options);
-                                 } else if (publicProfileUserJoinedSpan) {
-                                     publicProfileUserJoinedSpan.textContent = '[Join date not available]';
-                                 }
-
-
-                                 // Display Moderation Status (Left Panel)
-                                 if (profileModerationStatusSpan) {
-                                     const status = userData.moderationStatus || 0; // Default to 0 if not set
-                                     let statusText = 'None';
-                                     switch(status) {
-                                         case 1: statusText = 'Warned'; break;
-                                         case 2: statusText = 'Suspended'; break;
-                                         case 3: statusText = 'Banned/Disabled'; break;
-                                         default: statusText = 'None'; // Handle unexpected values
-                                     }
-                                     profileModerationStatusSpan.textContent = statusText;
-                                 }
-
-                                  // Display Bio (Public Bio Panel)
-                                  // Note: Bio is retrieved from RTDB.
-                                 if (profileBioDisplaySpan) {
-                                     profileBioDisplaySpan.textContent = userData.bio || '[Bio not set yet]';
-                                 }
-
-
-                             } else {
-                                 console.warn("No user data found in Realtime Database for UID:", user.uid);
-                                 // Display placeholders indicating data not found in all relevant fields
-                                 if (profileUsernameSpan) profileUsernameSpan.textContent = '[Profile data not found]';
-                                 if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[Profile data not found]';
-                                 if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[Profile data not found]';
-                                 if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[Profile data not found]';
-                                 if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[Profile data not found]';
-                                 if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[Profile data not found]';
-
-                                 showWarningDialog("Your profile data was not found in the database. Please contact support or try signing up again.");
-                             }
-                         } catch (dbError) {
-                             console.error("Error fetching user data from Realtime Database:", dbError);
-                             // Display placeholders indicating error in all relevant fields
-                             if (profileUsernameSpan) profileUsernameSpan.textContent = '[Error loading profile data]';
-                             if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[Error loading profile data]';
-                             if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[Error loading profile data]';
-                             if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[Error loading profile data]';
-                             if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[Error loading profile data]';
-                              if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[Error loading profile data]';
-
-                             showErrorDialog("Failed to load profile data. Please try again later.");
-                         }
-                     } else {
-                         console.error("No user UID available to fetch profile data.");
-                         // Display placeholders indicating error in all relevant fields
-                         if (profileUsernameSpan) profileUsernameSpan.textContent = '[UID not available]';
-                         if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[UID not available]';
-                         if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[UID not available]';
-                         if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[UID not available]';
-                         if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[UID not available]';
-                         if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[UID not available]';
-
-                          showErrorDialog("User authentication error. Please try logging in again.");
+                     if (signInLink) signInLink.style.display = 'none';
+                     if (userDisplay) userDisplay.style.display = 'flex';
+                     if (userUsernameLabel) userUsernameLabel.textContent = username || user.email; // Display username, fallback to email
+                     // Show admin button if user is an admin (placeholder logic)
+                     // This would typically check a user role in your database
+                     if (adminButton) {
+                         // Placeholder: Check if user UID matches a known admin UID or check a 'role' field in RTDB
+                         // if (user.uid === 'YOUR_ADMIN_UID' || (userData && userData.role === 'admin')) {
+                         //     adminButton.style.display = 'block';
+                         // } else {
+                             adminButton.style.display = 'none'; // Hide by default
+                         // }
                      }
 
 
                  } else {
-                     // No user is signed in. Redirect to sign in page.
-                     console.log("No user signed in on profile page. Redirecting.");
-                     window.location.href = '../../signin/index.html'; // Redirect to sign in
+                     // User is signed out
+                     if (signInLink) signInLink.style.display = 'flex';
+                     if (userDisplay) userDisplay.style.display = 'none';
+                     if (adminButton) adminButton.style.display = 'none';
+                 }
+             };
+
+             // Set up the auth state observer
+             onAuthStateChanged(auth, async (user) => {
+                 if (user) {
+                     // User is signed in
+                     console.log("Auth state changed: User signed in", user);
+
+                     // Fetch user data from RTDB to get username and other profile details
+                      let username = user.email; // Default to email until username is fetched
+                      let photoURLToDisplay = user.photoURL; // Prioritize Auth photoURL
+
+
+                     if (user.uid) {
+                          const userProfileRef = ref(db, `4Mod1/profile/account/${user.uid}`);
+                          try {
+                              const snapshot = await get(userProfileRef);
+                              if (snapshot.exists()) {
+                                  const userData = snapshot.val();
+                                   console.log("User profile data fetched for header:", userData);
+                                  username = userData.username || user.email; // Use username from RTDB, fallback to email
+                                   // If RTDB has a profilePictureUrl, use it if Auth photoURL is missing
+                                   if (!photoURLToDisplay && userData.profilePictureUrl) {
+                                        photoURLToDisplay = userData.profilePictureUrl;
+                                        console.log("Using profile picture URL from RTDB.");
+                                   }
+
+
+                                  // Display Username (Left Panel)
+                                  if (profileUsernameSpan) {
+                                      profileUsernameSpan.textContent = userData.username || '[Username not set]';
+                                  }
+                                   // Display Username (Public Profile Panel)
+                                  if (publicProfileUsernameSpan) {
+                                      publicProfileUsernameSpan.textContent = userData.username || '[Username not set]';
+                                  }
+
+                                   // Display User Joined Date (Left Panel)
+                                   if (profileUserJoinedSpan && userData.joinTimestamp) {
+                                       const joinDate = new Date(userData.joinTimestamp);
+                                       const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                                       profileUserJoinedSpan.textContent = joinDate.toLocaleDateString(undefined, options);
+                                   } else if (profileUserJoinedSpan) {
+                                       profileUserJoinedSpan.textContent = '[Join date not available]';
+                                   }
+                                   // Display User Joined Date (Public Bio Panel)
+                                   if (publicProfileUserJoinedSpan && userData.joinTimestamp) {
+                                       const joinDate = new Date(userData.joinTimestamp);
+                                       const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                                       publicProfileUserJoinedSpan.textContent = joinDate.toLocaleDateString(undefined, options);
+                                   } else if (publicProfileUserJoinedSpan) {
+                                       publicProfileUserJoinedSpan.textContent = '[Join date not available]';
+                                   }
+
+                                   // Display Moderation Status (Left Panel)
+                                   if (profileModerationStatusSpan) {
+                                       const status = userData.moderationStatus || 0;
+                                       let statusText = 'None';
+                                       switch(status) {
+                                           case 1: statusText = 'Warned'; break;
+                                           case 2: statusText = 'Suspended'; break;
+                                           case 3: statusText = 'Banned/Disabled'; break;
+                                           default: statusText = 'None';
+                                       }
+                                       profileModerationStatusSpan.textContent = statusText;
+                                   }
+
+                                    // Display Bio (Public Bio Panel)
+                                   if (profileBioDisplaySpan) {
+                                       profileBioDisplaySpan.textContent = userData.bio || '[Bio not set yet]';
+                                   }
+
+
+                              } else {
+                                  console.warn("No user data found in Realtime Database for UID:", user.uid);
+                                  // Set placeholders if data not found
+                                   if (profileUsernameSpan) profileUsernameSpan.textContent = '[Profile data not found]';
+                                   if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[Profile data not found]';
+                                   if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[Profile data not found]';
+                                   if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[Profile data not found]';
+                                   if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[Profile data not found]';
+                                    if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[Profile data not found]';
+
+                                   // Show warning about missing profile data
+                                   showWarningDialog("Your complete profile data was not found. Please contact support.");
+                              }
+                          } catch (dbError) {
+                              console.error("Error fetching user profile data:", dbError);
+                               // Set placeholders on error
+                              if (profileUsernameSpan) profileUsernameSpan.textContent = '[Error loading profile data]';
+                              if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[Error loading profile data]';
+                              if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[Error loading profile data]';
+                              if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[Error loading profile data]';
+                              if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[Error loading profile data]';
+                              if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[Error loading profile data]';
+
+                              showErrorDialog("Failed to load some profile data. Please try again later.");
+                          }
+                     } else {
+                          console.error("User UID not available after auth state change.");
+                           // Set placeholders indicating error
+                          if (profileUsernameSpan) profileUsernameSpan.textContent = '[UID not available]';
+                          if (publicProfileUsernameSpan) publicProfileUsernameSpan.textContent = '[UID not available]';
+                          if (profileUserJoinedSpan) profileUserJoinedSpan.textContent = '[UID not available]';
+                          if (publicProfileUserJoinedSpan) publicProfileUserJoinedSpan.textContent = '[UID not available]';
+                          if (profileModerationStatusSpan) profileModerationStatusSpan.textContent = '[UID not available]';
+                           if (profileBioDisplaySpan) profileBioDisplaySpan.textContent = '[UID not available]';
+
+                           showErrorDialog("User authentication error. Please try logging in again.");
+                     }
+
+                      // Update header UI *after* attempting to fetch username
+                      updateHeaderUI(user, username);
+
+                      // Update profile picture displays *after* fetching photoURL
+                      updateProfilePictureDisplays(photoURLToDisplay);
+
+
+                 } else {
+                     // User is signed out
+                     console.log("Auth state changed: No user signed in");
+                     updateHeaderUI(null, null); // Update header for signed-out state
                  }
              });
+
+
+             // Handle logout link click (moved from script.js)
+             if (logoutLink && confirmDialogOverlay) {
+                 logoutLink.addEventListener('click', (event) => {
+                     event.preventDefault(); // Prevent default link behavior
+                     confirmDialogOverlay.classList.add('show'); // Show the confirmation dialog
+                 });
+             }
+
+             // Handle cancel logout button click (moved from script.js)
+             if (cancelLogoutButton && confirmDialogOverlay) {
+                 cancelLogoutButton.addEventListener('click', () => {
+                     confirmDialogOverlay.classList.remove('show'); // Hide the confirmation dialog
+                 });
+             }
+
+             // Handle confirm logout button click (moved from script.js)
+             if (confirmLogoutButton && confirmDialogOverlay) {
+                 confirmLogoutButton.addEventListener('click', async () => {
+                     confirmDialogOverlay.classList.remove('show'); // Hide the dialog
+                     try {
+                         await signOut(auth);
+                         console.log("User signed out successfully.");
+                         // Redirect to the sign-in page after logout
+                         window.location.href = '../../signin/index.html'; // Adjust path if needed
+                     } catch (error) {
+                         console.error("Error signing out:", error);
+                         showErrorDialog("Failed to log out. Please try again.");
+                     }
+                 });
+             }
+
+             // --- End Header Logic ---
 
 
             // Event listener for the Password Toggle Icon in the Profile section
@@ -1397,14 +1622,6 @@
                  myCreationsButton.addEventListener('click', () => {
                      console.log('"My Creations" button clicked (Coming Soon).');
                       showWarningDialog("My Creations are not available yet. Coming Soon!");
-                 });
-             }
-
-             if (updateBioButton) {
-                 updateBioButton.addEventListener('click', () => {
-                     console.log('"Update Bio" button clicked (Coming Soon).');
-                     // This would ideally open a dialog/form to edit the bio and save it to RTDB
-                     showWarningDialog("Bio editing is not available yet. Coming Soon!");
                  });
              }
 
@@ -1563,6 +1780,7 @@
                  pfpCropCancelButton.addEventListener('click', () => {
                      console.log("Crop view Cancel button clicked. Closing dialog.");
                      hidePfpEditDialog(); // Close the entire dialog
+                     showWarningDialog("Profile picture update cancelled.");
                  });
             }
 
@@ -1595,7 +1813,7 @@
                       showPfpEditView('crop'); // Go back to Step 2
                        pfpConfirmCheckbox.checked = false; // Uncheck checkbox
                        updatePfpButton.disabled = true; // Disable button
-                       finalImageDataUrl = null; // Clear final image data
+                       // Do NOT clear finalImageDataUrl here, as we might go back to Confirm
                   });
              }
 
@@ -1640,13 +1858,14 @@
                                   // Also attempt to update Firebase Auth's photoURL field if possible
                                   // This might not display the Data URL correctly in all Firebase UIs,
                                   // but it's good practice to keep it in sync if Firebase Auth is the primary source.
+                                  // Firebase Auth's updateProfile expects a URL. A Data URL is a valid URL format.
                                   try {
                                        await updateProfile(user, { photoURL: finalImageDataUrl });
                                        console.log("Firebase Auth photoURL updated with Data URL.");
                                   } catch (authUpdateError) {
                                        console.error("Error updating Firebase Auth photoURL:", authUpdateError);
                                       // This error might occur if Auth photoURL field has restrictions on Data URLs.
-                                       showWarningDialog("Profile picture saved to database, but failed to update authentication record.");
+                                       showWarningDialog("Profile picture saved to database, but failed to update authentication record (Firebase Auth photoURL).");
                                   }
 
 
@@ -1671,6 +1890,94 @@
                      }
                  });
             }
+
+            // --- End Profile Picture Edit Dialog Logic ---
+
+
+             // --- Edit Bio Dialog Logic ---
+
+             // Open Edit Bio dialog when "Update Bio" button is clicked
+             if (updateBioButton && editBioOverlay) {
+                  updateBioButton.addEventListener('click', () => {
+                      console.log('"Update Bio" button clicked. Opening edit bio dialog.');
+                       // Get the current bio text to populate the textarea
+                       const currentBio = profileBioDisplaySpan ? profileBioDisplaySpan.textContent : '';
+                       showEditBioDialog(currentBio === '[Loading Bio...]' || currentBio === '[Bio not set yet]' || currentBio === '[Profile data not found]' || currentBio === '[Error loading profile data]' || currentBio === '[UID not available]' ? '' : currentBio);
+                  });
+             }
+
+             // Close Edit Bio dialog
+             if (editBioCloseButton) {
+                  editBioCloseButton.addEventListener('click', () => {
+                      console.log("Edit bio dialog close button clicked.");
+                       hideEditBioDialog();
+                       showWarningDialog("Bio update cancelled."); // Show cancelled message as requested
+                  });
+             }
+
+             // Update character counter as user types in bio textarea
+             if (bioTextarea && bioCharCounter) {
+                 bioTextarea.addEventListener('input', updateBioCharCounter);
+                  bioTextarea.addEventListener('propertychange', updateBioCharCounter); // For older IE support
+
+                 // Ensure submit button is enabled/disabled based on text content (not just counter)
+                 bioTextarea.addEventListener('input', () => {
+                     bioSubmitButton.disabled = bioTextarea.value.length > bioCharLimit;
+                 });
+             }
+
+
+             // Handle Cancel button in Edit Bio dialog
+             if (bioCancelButton) {
+                  bioCancelButton.addEventListener('click', () => {
+                      console.log("Edit bio dialog Cancel button clicked.");
+                       hideEditBioDialog();
+                       showWarningDialog("Bio update cancelled."); // Show cancelled message as requested
+                  });
+             }
+
+             // Handle Submit button in Edit Bio dialog
+             if (bioSubmitButton) {
+                  bioSubmitButton.addEventListener('click', async () => {
+                      const newBio = bioTextarea.value.trim();
+                       if (newBio.length > bioCharLimit) {
+                           showErrorDialog(`Bio exceeds the maximum character limit of ${bioCharLimit}.`);
+                           return;
+                       }
+
+                      console.log("Edit bio dialog Submit button clicked. Attempting to save bio.");
+
+                      const user = auth.currentUser;
+                      if (user && user.uid) {
+                           const userProfileRef = ref(db, `4Mod1/profile/account/${user.uid}`);
+                           const updates = {
+                               bio: newBio
+                           };
+
+                           try {
+                               await update(userProfileRef, updates);
+                               console.log("Bio updated successfully in Realtime Database.");
+                                hideEditBioDialog();
+                                showWarningDialog("Bio updated successfully! Reloading page."); // Use Warning for visibility for success
+
+                                // Reload the page to refresh the displayed bio
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 2000); // Reload after 2 seconds
+
+                           } catch (dbError) {
+                                console.error("Error updating bio in Realtime Database:", dbError);
+                                hideEditBioDialog();
+                                showErrorDialog("Failed to update bio. Please try again.");
+                           }
+
+                      } else {
+                          console.error("User not signed in or UID not available to update bio.");
+                          hideEditBioDialog();
+                          showErrorDialog("You must be signed in to update your bio.");
+                      }
+                  });
+             }
 
 
          });
